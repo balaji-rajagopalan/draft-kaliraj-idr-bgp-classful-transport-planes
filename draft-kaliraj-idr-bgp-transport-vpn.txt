@@ -642,7 +642,7 @@ Authors' Addresses
    Sunnyvale, CA  94089
    US
 
-   Email: kaliraj@juniper.net
+   Email: natv@juniper.net
 
 
    Balaji Rajagopalan
@@ -651,7 +651,7 @@ Authors' Addresses
    Bangalore, KA  560103
    India
 
-   Email: kaliraj@juniper.net
+   Email: balajir@juniper.net
 
 
 
