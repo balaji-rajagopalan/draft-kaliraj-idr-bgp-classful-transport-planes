@@ -223,14 +223,30 @@
       Routing-instance" at the routers.</t>
 
       <t>The operator may configure the service-edge router to classify a
-      tunnel into appropriate transport-class. Alternatively the
-      transport-routes received with appropriate signaling-information
-      (TransportClass-RT or Communities) can associate those ingress-routes to
-      the appropriate transport-class.</t>
+      native-protocol (e.g. RSVP, GRE, Static-LSP) tunnel into appropriate
+      transport-class. The transport tunneling-protocols install the
+      ingress-route for a tunnel in the appropriate transport-rib determined
+      by the transport-class. Each transport-class maps to a transport-rib.
+      </t>
 
-      <t>The transport tunneling-protocols install the ingress-routes for a
-      tunnel in the appropriate transport-rib assoiciated with the
-      transport-class. Each transport-class maps to a transport-rib.</t>
+      <t>Alternatively the transport-routes received in BGP with appropriate
+      signaling-information can associate those ingress-routes to the
+      appropriate transport-class. E.g. for TransportVpn family(SAFI 75)
+      routes, the TransportClass-RT indicates the transport-class. For BGP-LU
+      family(SAFI 4) routes, import-policy based on Communities or inter-AS
+      source-peer may be used to place the route in the desired
+      transport-class.</t>
+
+      <t>When the ingress-route is received via [BGP-SRTE], which encodes the
+      transport-class as an integer "Color" in the NLRI : "Color:Endpoint",
+      the color can be mapped to a transport-class community/Route-Target by
+      the receiving router, so that the ingress-route for "Endpoint" is
+      installed in the transport-rib for the transport-class. The BGP-SRTE
+      route when advertised out to BGP-speakers in other domains will be
+      advertised in TransportVpn family with TransportClass-RT and a new
+      label. The MPLS swap-route thus installed for the new label will pop the
+      label and deliver decapsulated-traffic into the path determined by SRTE
+      route.</t>
     </section>
 
     <section title="Transport RIB">
@@ -351,8 +367,8 @@
     <section title="Comparison with other families using RFC-8277 encoding">
       <t>SAFI 128 (InetVpn) is a RFC-8277 encoded family, that carries
       service-prefixes in the NLRI, where the prefixes come from the customer
-      namespaces, and are contexualized into separate user virtual RIBs, using
-      RFC-4364 procedures.</t>
+      namespaces, and are contexualized into separate user virtual
+      service-RIBs called VRFs, using RFC-4364 procedures.</t>
 
       <t>SAFI 4 (BGP-LU) is a RFC-8277 encoded family, that carries
       transport-prefixes in the NLRI, where the prefixes come from the
@@ -364,21 +380,22 @@
       using RFC-4364 procedures.</t>
 
       <t>It is worth noting that SAFI 128 has been used to carry
-      transport-prefixes in Carrier's carrier scenario, where BGP-LU/LDP
-      prefixes in CsC VRF are advertised in SAFI 128 to the remote end baby
-      carrier. </t>
+      transport-prefixes in "L3VPN Inter-AS Carrier's carrier" scenario, where
+      BGP-LU/LDP prefixes in CsC VRF are advertised in SAFI 128 to the
+      remote-end baby carrier. </t>
 
       <t>In this document we use a new AFI/SAFI instead of re-using SAFI 128
       to carry these transport-routes, because it is operationally
       advantageous to keep transport and service prefixes separate, and not
-      mix in same address-family. It allows to safely enable per-prefix-label
-      allocation for transport-VPN prefixes while not affecting SAFI 128
-      service-prefixes. Also, transport-family re-advertisement path in a
-      network would be different than service-route readvertisement path. viz.
-      Service-routes are exchanged over a EBGP multihop session between
-      Autonomous-systems with nexthop unchanged; where-as transport-VPN routes
-      will need to be readvertised over EBGP single-hop sessions with
-      nexthop-self rewrite over inter-AS links.</t>
+      mix in same address-family or rib. E.g. it allows to safely enable
+      per-prefix-label allocation for transport-VPN prefixes while not
+      affecting SAFI 128 service-prefixes which have huge-scale. Also,
+      re-advertisement path of transport-family routes in a network would be
+      different than service-route readvertisement path. viz. Service-routes
+      are exchanged over a EBGP multihop session between Autonomous-systems
+      with nexthop unchanged; where-as transport-VPN routes are readvertised
+      over EBGP single-hop sessions with nexthop-self rewrite over inter-AS
+      links.</t>
 
       <t>This family TransportVpn is similar in vein to BGP-LU, in that it
       carries transport-prefixes. The only difference is, it also carries
@@ -387,7 +404,7 @@
       the same transport-prefix when carried in BGP update messages. </t>
     </section>
 
-    <section title="Procedures">
+    <section title="Protocol procedures">
       <t>This section summarizes the procedures followed by various nodes
       speaking Transport-VPN family</t>
 
@@ -522,9 +539,13 @@
 
     <section anchor="Acknowledgements" title="Acknowledgements">
       <t>The authors thank Jeff Haas, John Scudder, Navaneetha Krishnan, Ravi
-      M R, Shradha Hegde, Richard Roberts, Krzysztof Szarkowicz, John E Drake,
-      Srihari Sangli, Vijay Kestur, Santosh Kolenchery for the valuable
-      discussions.</t>
+      M R, Chandrasekar Ramachandran, Shradha Hegde, Richard Roberts,
+      Krzysztof Szarkowicz, John E Drake, Srihari Sangli, Vijay Kestur,
+      Santosh Kolenchery for the valuable discussions.</t>
+
+      <t>The decision to not reuse SAFI 128 and create a new address-family to
+      carry these transport-routes was based on suggestion made by Richard
+      Roberts and Krzysztof Szarkowicz.</t>
     </section>
 
     <section anchor="References" title="References">
@@ -533,6 +554,9 @@
       <t>[RFC-8277] Using BGP to Bind MPLS Labels to Address Prefixes</t>
 
       <t>[ADDPATH] RFC-7911 - Advertisement of Multiple Paths in BGP</t>
+
+      <t>[BGP-SRTE] Advertising Segment Routing Policies in BGP,
+      draft-ietf-idr-segment-routing-te-policy-08</t>
     </section>
   </middle>
 
