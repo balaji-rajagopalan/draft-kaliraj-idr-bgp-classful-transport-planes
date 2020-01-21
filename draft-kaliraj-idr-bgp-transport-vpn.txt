@@ -20,8 +20,8 @@ Abstract
    mapping", to express association of overlay routes with underlay
    routes using BGP.  The document describes a framework for service
    mapping, and specifies BGP protocol procedures that enable
-   dissimination of the service mapping information that can potentially
-   cross administrative domains.  It makes it possible to advertise
+   dissimination of the service mapping information that may span
+   across administrative domains.  It makes it possible to advertise
    multiple tunnels to the same destination.
 
    A new BGP transport address family is defined for this purpose that
@@ -121,14 +121,15 @@ Internet-Draft             BGP Transport VPNs              December 2019
    The extensions specified in this document can be used to create a BGP
    transport tunnel that potentially spans domains, while preserving its
    Transport Class.  Examples of domain are Autonomous System (AS), or
-   IGP area.  Within each domain, there is a second level underlay LSP
-   used by BGP to cross the domain.  The second level underlay LSPs
-   could be hetrogeneous: Each domain may use a different type of
-   tunnel, or use a differnet signaling protocol.  A domain boundary is
-   demarcated by a rewrite of BGP nexthop to 'self' while re-advertising
-   tunnel routes in BGP.  The path uses MPLS label-switching when
-   crossing inter-AS links and uses the native intra-AS tunnel of the
-   desired traffic class when traversing within a domain.
+   IGP area.  Within each domain, there is a second level underlay
+   tunnel used by BGP to cross the domain.  The second level underlay
+   tunnels could be hetrogeneous: Each domain may use a different type
+   of tunnel, or use a differnet signaling protocol.  A domain boundary
+   is demarcated by a rewrite of BGP nexthop to 'self' while
+   re-advertising tunnel routes in BGP.  The path uses MPLS
+   label-switching when crossing inter-AS links and uses the native
+   intra-AS tunnel of the desired traffic class when traversing within a
+   domain.
 
    Overlay routes carry sufficient indication of the Transport Class
    they should be encapsulated over.  A "route resolution" procedure on
@@ -226,9 +227,10 @@ Vairavakkalai, et al.     Expires July 1, 2020                  [Page 4]
 Internet-Draft             BGP Transport VPNs              December 2019
 
 
-   Transport VPN : Set of Transport RTIs importing same Transport Class
-   RT.  Across tunnel domain boundaries these are stitched together
-   using option-b(nexthop-self, label-swap)-like mechanism.
+   Transport VPN : Set of Transport RTIs importing the same Transport
+   Class RT.  These are inturn stitched together to span across tunnel
+   domain boundaries using a mechanism similar to Inter-AS option-b
+   to swap labels at the BN (nexthop-self).
 
    Mapping Community : Community on a service route, that maps it to
    resolve over a Transport Class
@@ -426,18 +428,19 @@ Internet-Draft             BGP Transport VPNs              December 2019
    /LDP prefixes in CsC VRF are advertised in SAFI 128 to the remote-end
    baby carrier.
 
-   In this document we use a new AFI/SAFI instead of re-using SAFI 128
+   In this document a new AFI/SAFI is used instead of reusing SAFI 128
    to carry these transport-routes, because it is operationally
-   advantageous to keep transport and service prefixes separate, and not
-   mix in same address-family or rib.  E.g. it allows to safely enable
-   per-prefix-label allocation for Transport-VPN prefixes while not
-   affecting SAFI 128 service-prefixes which have huge-scale.  Also, re-
-   advertisement path of transport-family routes in a network would be
-   different than service-route readvertisement path. viz. Service-
-   routes are exchanged over a EBGP multihop session between Autonomous-
-   systems with nexthop unchanged; where-as Transport-VPN routes are
-   readvertised over EBGP single-hop sessions with nexthop-self rewrite
-   over inter-AS links.
+   advantageous to segregate transport and service prefixes into
+   different address-families (or RIBs).  E.g. It allows to safely
+   enable per-prefix-label allocation for Transport-VPN prefixes
+   without affecting SAFI 128 service-prefixes which have huge-scale.
+   This also helps in tracking the re-advertisement path of the
+   transport-family routes in a network better as it would be different
+   than the service-route re-advertisement path. viz. Service-routes
+   are exchanged over a EBGP multihop sessions between Autonomous-
+   systems with nexthop unchanged; whereas Transport-VPN routes are
+   readvertised over EBGP single hop sessions with nexthop-self
+   rewrite over inter-AS links.
 
    The Transport-VPN family is similar in vein to BGP-LU, in that it
    carries transport prefixes.  The only difference is, it also carries
