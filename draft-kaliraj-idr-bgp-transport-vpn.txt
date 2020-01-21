@@ -20,9 +20,9 @@ Abstract
    mapping", to express association of overlay routes with underlay
    routes using BGP.  The document describes a framework for service
    mapping, and specifies BGP protocol procedures that enable
-   dissimination of the service mapping information that may span
-   across administrative domains.  It makes it possible to advertise
-   multiple tunnels to the same destination.
+   dissimination of the service mapping information that may span across
+   administrative domains.  It makes it possible to advertise multiple
+   tunnels to the same destination.
 
    A new BGP transport address family is defined for this purpose that
    uses BGP-VPN technology (RFC 4364) and follows RLI-8277 NLRI
@@ -78,7 +78,7 @@ Table of Contents
    1.  Introduction  . . . . . . . . . . . . . . . . . . . . . . . .   2
    2.  Terminology . . . . . . . . . . . . . . . . . . . . . . . . .   4
    3.  Transport Class . . . . . . . . . . . . . . . . . . . . . . .   5
-   4.  Transport RIB . . . . . . . . . . . . . . . . . . . . . . . .   5
+   4.  Transport RIB . . . . . . . . . . . . . . . . . . . . . . . .   6
    5.  Transport Routing Instance  . . . . . . . . . . . . . . . . .   6
    6.  Nexthop Resolution Scheme . . . . . . . . . . . . . . . . . .   6
    7.  BGP Transport-VPN Family NLRI . . . . . . . . . . . . . . . .   7
@@ -125,11 +125,10 @@ Internet-Draft             BGP Transport VPNs              December 2019
    tunnel used by BGP to cross the domain.  The second level underlay
    tunnels could be hetrogeneous: Each domain may use a different type
    of tunnel, or use a differnet signaling protocol.  A domain boundary
-   is demarcated by a rewrite of BGP nexthop to 'self' while
-   re-advertising tunnel routes in BGP.  The path uses MPLS
-   label-switching when crossing inter-AS links and uses the native
-   intra-AS tunnel of the desired traffic class when traversing within a
-   domain.
+   is demarcated by a rewrite of BGP nexthop to 'self' while re-
+   advertising tunnel routes in BGP.  The path uses MPLS label-switching
+   when crossing inter-AS links and uses the native intra-AS tunnel of
+   the desired traffic class when traversing within a domain.
 
    Overlay routes carry sufficient indication of the Transport Class
    they should be encapsulated over.  A "route resolution" procedure on
@@ -217,8 +216,8 @@ Internet-Draft             BGP Transport VPNs              December 2019
    Transport RTI : A Routing Instance; container of Transport RIB, and
    associated Transport Class RT and RD.
 
-
-
+   Transport VPN : Set of Transport RTIs importing same Transport Class
+   RT.  These are inturn stitched together to span across tunnel domain
 
 
 
@@ -227,10 +226,8 @@ Vairavakkalai, et al.     Expires July 1, 2020                  [Page 4]
 Internet-Draft             BGP Transport VPNs              December 2019
 
 
-   Transport VPN : Set of Transport RTIs importing the same Transport
-   Class RT.  These are inturn stitched together to span across tunnel
-   domain boundaries using a mechanism similar to Inter-AS option-b
-   to swap labels at the BN (nexthop-self).
+   boundaries using a mechanism similar to Inter-AS option-b to swap
+   labels at BN (nexthop-self).
 
    Mapping Community : Community on a service route, that maps it to
    resolve over a Transport Class
@@ -272,10 +269,11 @@ Internet-Draft             BGP Transport VPNs              December 2019
    installed for the new label will pop the label and deliver
    decapsulated-traffic into the path determined by SRTE route.
 
-4.  Transport RIB
 
-   A Transport RIB is a routing-only RIB that is not installed in
-   forwarding path.  However, the routes in this RIB are used to resolve
+
+
+
+
 
 
 
@@ -284,6 +282,10 @@ Vairavakkalai, et al.     Expires July 1, 2020                  [Page 5]
 Internet-Draft             BGP Transport VPNs              December 2019
 
 
+4.  Transport RIB
+
+   A Transport RIB is a routing-only RIB that is not installed in
+   forwarding path.  However, the routes in this RIB are used to resolve
    reachability of overlay routes' PNH.  Transport RIB is created when
    the Transport Class it represents is configured.
 
@@ -327,10 +329,6 @@ Internet-Draft             BGP Transport VPNs              December 2019
    received with this attribute, it signifies the resolution scheme to
    use when resolving the route's PNH.
 
-   A transport route received in BGP Transport-VPN family should use a
-   resolution scheme that contains only the primary Transport Class
-   without any fallback.  The primary Transport Class will be identified
-   by the Transport Class RT carried on the route.
 
 
 
@@ -339,6 +337,11 @@ Vairavakkalai, et al.     Expires July 1, 2020                  [Page 6]
 
 Internet-Draft             BGP Transport VPNs              December 2019
 
+
+   A transport route received in BGP Transport-VPN family should use a
+   resolution scheme that contains only the primary Transport Class
+   without any fallback.  The primary Transport Class will be identified
+   by the Transport Class RT carried on the route.
 
 7.  BGP Transport-VPN Family NLRI
 
@@ -383,11 +386,6 @@ Internet-Draft             BGP Transport VPNs              December 2019
    - Label:
 
        The Label field is a 20-bit field containing an MPLS label value
-       (see [RFC3032]).
-
-   - Rsrv:
-
-       This 3-bit field SHOULD be set to zero on transmission and MUST
 
 
 
@@ -396,6 +394,11 @@ Vairavakkalai, et al.     Expires July 1, 2020                  [Page 7]
 Internet-Draft             BGP Transport VPNs              December 2019
 
 
+       (see [RFC3032]).
+
+   - Rsrv:
+
+       This 3-bit field SHOULD be set to zero on transmission and MUST
        be ignored on reception.
 
    - S:
@@ -429,22 +432,16 @@ Internet-Draft             BGP Transport VPNs              December 2019
    baby carrier.
 
    In this document a new AFI/SAFI is used instead of reusing SAFI 128
-   to carry these transport-routes, because it is operationally
+   to carry these transport routes, because it is operationally
    advantageous to segregate transport and service prefixes into
-   different address-families (or RIBs).  E.g. It allows to safely
-   enable per-prefix-label allocation for Transport-VPN prefixes
-   without affecting SAFI 128 service-prefixes which have huge-scale.
-   This also helps in tracking the re-advertisement path of the
-   transport-family routes in a network better as it would be different
-   than the service-route re-advertisement path. viz. Service-routes
-   are exchanged over a EBGP multihop sessions between Autonomous-
-   systems with nexthop unchanged; whereas Transport-VPN routes are
-   readvertised over EBGP single hop sessions with nexthop-self
-   rewrite over inter-AS links.
-
-   The Transport-VPN family is similar in vein to BGP-LU, in that it
-   carries transport prefixes.  The only difference is, it also carries
-   in Route Target an indication of which Transport Class the transport
+   separate address families, RIBs.  E.g. It allows to safely enable
+   "per-prefix" label allocation scheme for Transport-VPN prefixes
+   without affecting SAFI 128 service prefixes which may have huge
+   scale. "per prefix" label allocation scheme keeps the routing churn
+   local during topology changes.  A new family also facilitates having
+   a different readvertisement path of the transport family routes in a
+   network than the service route readvertisement path. viz. Service
+   routes are exchanged over an EBGP multihop sessions between
 
 
 
@@ -453,6 +450,13 @@ Vairavakkalai, et al.     Expires July 1, 2020                  [Page 8]
 Internet-Draft             BGP Transport VPNs              December 2019
 
 
+   Autonomous systems with nexthop unchanged; whereas Transport-VPN
+   routes are readvertised over EBGP single hop sessions with "nexthop-
+   self" rewrite over inter-AS links.
+
+   The Transport-VPN family is similar in vein to BGP-LU, in that it
+   carries transport prefixes.  The only difference is, it also carries
+   in Route Target an indication of which Transport Class the transport
    prefix belongs to, and uses RD to disambiguate multiple instances of
    the same transport prefix in a BGP Update.
 
@@ -493,13 +497,6 @@ Internet-Draft             BGP Transport VPNs              December 2019
 
    Ingress node receiving Transport-VPN route
 
-      On receiving a BGP Transport-VPN route with a PNH that is not
-      directly connected, e.g. an IBGP-route, the Route-Target on the
-      route indicates which Transport Class this route belongs to.  The
-      routes in the associated Transport RIB are used to resolve the
-      received PNH.  If there does not exist a route in the Transport
-      RIB for the PNH, the Transport-VPN route is considered unusable,
-      and MUST not be re-advertised further.
 
 
 
@@ -508,6 +505,14 @@ Vairavakkalai, et al.     Expires July 1, 2020                  [Page 9]
 
 Internet-Draft             BGP Transport VPNs              December 2019
 
+
+      On receiving a BGP Transport-VPN route with a PNH that is not
+      directly connected, e.g. an IBGP-route, the Route-Target on the
+      route indicates which Transport Class this route belongs to.  The
+      routes in the associated Transport RIB are used to resolve the
+      received PNH.  If there does not exist a route in the Transport
+      RIB for the PNH, the Transport-VPN route is considered unusable,
+      and MUST not be re-advertised further.
 
    Border node readvertising Transport-VPN route with nexthop self:
 
@@ -550,20 +555,19 @@ Internet-Draft             BGP Transport VPNs              December 2019
 
    Coordinating between domains using different community namespaces.
 
-      Domains not agreeing on RT, RD, Mapping-community values because
-      of independently administered community namespaces may deploy
-      mechanisms to map and rewrite the Route-target values on domain
-      boundaries, using per ASBR import policies.  This is no different
-      than any other BGP VPN family.  Mechanisms employed in inter-AS
-      VPN deployments may be used with the Transport-VPN family also.
-
-
 
 
 Vairavakkalai, et al.     Expires July 1, 2020                 [Page 10]
 
 Internet-Draft             BGP Transport VPNs              December 2019
 
+
+      Domains not agreeing on RT, RD, Mapping-community values because
+      of independently administered community namespaces may deploy
+      mechanisms to map and rewrite the Route-target values on domain
+      boundaries, using per ASBR import policies.  This is no different
+      than any other BGP VPN family.  Mechanisms employed in inter-AS
+      VPN deployments may be used with the Transport-VPN family also.
 
       Though RD can also be rewritten on domain boundaries, deploying
       unique RDs is strongly recommended, because it helps in trouble
@@ -604,13 +608,6 @@ Internet-Draft             BGP Transport VPNs              December 2019
    Krzysztof Szarkowicz, John E Drake, Srihari Sangli, Vijay Kestur,
    Santosh Kolenchery for the valuable discussions.
 
-   The decision to not reuse SAFI 128 and create a new address-family to
-   carry these transport-routes was based on suggestion made by Richard
-   Roberts and Krzysztof Szarkowicz.
-
-
-
-
 
 
 
@@ -620,6 +617,10 @@ Vairavakkalai, et al.     Expires July 1, 2020                 [Page 11]
 
 Internet-Draft             BGP Transport VPNs              December 2019
 
+
+   The decision to not reuse SAFI 128 and create a new address-family to
+   carry these transport-routes was based on suggestion made by Richard
+   Roberts and Krzysztof Szarkowicz.
 
 14.  References
 
@@ -662,6 +663,17 @@ Authors' Addresses
    Email: natv@juniper.net
 
 
+
+
+
+
+
+
+Vairavakkalai, et al.     Expires July 1, 2020                 [Page 12]
+
+Internet-Draft             BGP Transport VPNs              December 2019
+
+
    Balaji Rajagopalan
    Juniper Networks, Inc.
    Electra, Exora Business Park~Marathahalli - Sarjapur Outer Ring Road,
@@ -672,4 +684,45 @@ Authors' Addresses
 
 
 
-Vairavakkalai, et al.     Expires July 1, 2020                 [Page 12]
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Vairavakkalai, et al.     Expires July 1, 2020                 [Page 13]

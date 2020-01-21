@@ -87,9 +87,9 @@
       mapping", to express association of overlay routes with underlay routes
       using BGP. The document describes a framework for service mapping, and
       specifies BGP protocol procedures that enable dissimination of the
-      service mapping information that may span across administrative
-      domains. It makes it possible to advertise multiple tunnels to the same
-      destination. </t>
+      service mapping information that may span across administrative domains.
+      It makes it possible to advertise multiple tunnels to the same
+      destination.</t>
 
       <t>A new BGP transport address family is defined for this purpose that
       uses BGP-VPN technology (RFC 4364) and follows RLI-8277 NLRI encoding.
@@ -393,17 +393,18 @@
       remote-end baby carrier.</t>
 
       <t>In this document a new AFI/SAFI is used instead of reusing SAFI 128
-      to carry these transport-routes, because it is operationally
-      advantageous to segregate transport and service prefixes separate into
-      different address-families (or RIBs). E.g. It allows to safely enable
-      per-prefix-label allocation for Transport-VPN prefixes without
-      affecting SAFI 128 service-prefixes which have huge-scale. This also
-      helps in tracking the re-advertisement path of the transport-family
-      routes in a network better as it would be different than the
-      service-route re-advertisement path. viz. Service-routes are exchanged
-      over a EBGP multihop sessions between Autonomous-systems with nexthop
-      unchanged; whereas Transport-VPN routes are readvertised over EBGP
-      single hop sessions with nexthop-self rewrite over inter-AS links.</t>
+      to carry these transport routes, because it is operationally
+      advantageous to segregate transport and service prefixes into separate
+      address families, RIBs. E.g. It allows to safely enable "per-prefix"
+      label allocation scheme for Transport-VPN prefixes without affecting
+      SAFI 128 service prefixes which may have huge scale. "per prefix" label
+      allocation scheme keeps the routing churn local during topology changes.
+      A new family also facilitates having a different readvertisement path of
+      the transport family routes in a network than the service route
+      readvertisement path. viz. Service routes are exchanged over an EBGP
+      multihop sessions between Autonomous systems with nexthop unchanged;
+      whereas Transport-VPN routes are readvertised over EBGP single hop
+      sessions with "nexthop-self" rewrite over inter-AS links.</t>
 
       <t>The Transport-VPN family is similar in vein to BGP-LU, in that it
       carries transport prefixes. The only difference is, it also carries in
