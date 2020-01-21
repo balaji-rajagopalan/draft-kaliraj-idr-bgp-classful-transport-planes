@@ -83,15 +83,17 @@
     <date day="29" month="December" year="2019"/>
 
     <abstract>
-      <t>This document specifies a mechanism, referred to as "service mapping",
-      to express association of overlay routes with underlay routes using
-      BGP. The document describes a framework for service mapping, and specifies
-      BGP protocol procedures that enable dissimineation of the service mapping
-      information that can potentially cross administrative domains</t>
-      
+      <t>This document specifies a mechanism, referred to as "service
+      mapping", to express association of overlay routes with underlay routes
+      using BGP. The document describes a framework for service mapping, and
+      specifies BGP protocol procedures that enable dissimination of the
+      service mapping information that can potentially cross administrative
+      domains. It makes it possible to advertise multiple tunnels to the same
+      destination. </t>
+
       <t>A new BGP transport address family is defined for this purpose that
       uses BGP-VPN technology (RFC 4364) and follows RLI-8277 NLRI encoding.
-      This new address family is called "Transport VPNs".</t>
+      This new address family is called "Transport VPN".</t>
     </abstract>
 
     <note title="Requirements Language">
@@ -104,54 +106,56 @@
 
   <middle>
     <section title="Introduction">
-      <t>To facilitate service mapping, the tunnels in a network can be grouped
-      by the purpose they serve into a "transport class". The tunnels could be
-      created using any existing signaling protocol, such as LDP, RSVP, BGP-LU
+      <t>To facilitate service mapping, the tunnels in a network can be
+      grouped by the purpose they serve into a "Transport Class". The tunnels
+      could be created using any signaling protocol, such as LDP, RSVP, BGP-LU
       or SPRING. The tunnels could also use native IP or IPv6, as long as the
-      tunnels can carry MPLS payload.</t>
+      tunnels can carry MPLS payload. Tunnels may exist between different pair
+      of end points. Multiple tunnels may exist between the same pair of end
+      points.</t>
 
-      <t>Thus, a transport class consists of tunnels created by many protocols
-      terminating in varios nodes, each satisfying the properties of the
+      <t>Thus, a Transport Class consists of tunnels created by many protocols
+      terminating in various nodes, each satisfying the properties of the
       class. For example, a "Gold" transport class may consist of tunnels that
       traverse the shortest path with fast re-route protection, a "Silver"
       transport class may hold tunnels that traverse shortest paths without
-      protection, a "Bronze" transport class may hold tunnels that are not
-      guaranteed to traverse the shortest path, and so on.</t>
+      protection, a "To NbrAS Foo" transport class may hold tunnels that exit
+      to neighboring AS Foo, and so on.</t>
 
       <t>The extensions specified in this document can be used to create a BGP
       transport tunnel that potentially spans domains, while preserving its
-      transport class.  Examples of domain are Autonomous System (AS), or IGP
-      area. Within each domain, there is a second level underlay LSP used by BGP
-      to cross the domain. The second level underlay LSPs could be hetrogeneous:
-      Each domain may use a different type of tunnel, or use a differnet
-      signaling protocol. A domain boundary is demarcated by a rewrite of BGP
-      nexthop to 'self' while re-advertising tunnel routes in BGP. The path uses
-      MPLS label-switching when crossing inter-AS links and uses the native
-      intra-AS tunnel of the desired traffic class when traversing within a
-      domain.</t>
+      Transport Class. Examples of domain are Autonomous System (AS), or IGP
+      area. Within each domain, there is a second level underlay LSP used by
+      BGP to cross the domain. The second level underlay LSPs could be
+      hetrogeneous: Each domain may use a different type of tunnel, or use a
+      differnet signaling protocol. A domain boundary is demarcated by a
+      rewrite of BGP nexthop to 'self' while re-advertising tunnel routes in
+      BGP. The path uses MPLS label-switching when crossing inter-AS links and
+      uses the native intra-AS tunnel of the desired traffic class when
+      traversing within a domain.</t>
 
-      <t>Overlay routes carry sufficient indication of the transport class they
-      should be encapsulated over. A "route resolution" procedure on the ingress
-      node selects from the transport class an appropriate tunnel whose
-      destination matches the nexthop of the overlay route. If the overlay route
-      is carried in BGP, the protocol nexthop (or, PNH) is generally carried as
-      an attribute of the route.  The PNH of the overlay route is also referred
-      to as "service endpoint".  The service endpoint may exist in the same
-      domain as the service ingress node or lie in a different domain, adjacent
-      or non-adjacent.</t>
+      <t>Overlay routes carry sufficient indication of the Transport Class
+      they should be encapsulated over. A "route resolution" procedure on the
+      ingress node selects from the Transport Class an appropriate tunnel
+      whose destination matches the nexthop of the overlay route. If the
+      overlay route is carried in BGP, the protocol nexthop (or, PNH) is
+      generally carried as an attribute of the route. The PNH of the overlay
+      route is also referred to as "service endpoint". The service endpoint
+      may exist in the same domain as the service ingress node or lie in a
+      different domain, adjacent or non-adjacent.</t>
 
       <t>This document describes mechanisms to: <list>
-          <t>Model a "transport class" as "transport RIB" consisting of tunnel
-          ingress routes of a certain class.</t>
+          <t>Model a "Transport Class" as "Transport RIB" on a router,
+          consisting of tunnel ingress routes of a certain class.</t>
 
-          <t>Enable service routes to resolve over an intended transport class
-          by using the corresponding transport RIB for finding nexthop
+          <t>Enable service routes to resolve over an intended Transport Class
+          by using the corresponding Transport RIB for finding nexthop
           reachability.</t>
 
-          <t>Advertise tunnel ingress routes of a transport RIB to other domains
-          without any path hiding, using BGP VPN technology and Add-path, such
+          <t>Advertise tunnel ingress routes in a Transport RIB via BGP
+          without any path hiding, using BGP VPN technology and Add-path. Such
           that overlay routes in the receiving domains can also resolve over
-          tunnels of the same transport class.</t>
+          tunnels of associated Transport Class.</t>
 
           <t>Provide a way for co-operating domains to reconcile between
           independently administered extended community namespaces, and
@@ -159,9 +163,9 @@
           domain.</t>
         </list></t>
 
-      <t>In this document we focus mainly on MPLS LSPs as transport tunnels, but
-      the mechanisms would work in similar manner for non-MPLS transport tunnels
-      too, provided the tunnel can carry MPLS payload.</t>
+      <t>In this document we focus mainly on MPLS LSPs as transport tunnels,
+      but the mechanisms would work in similar manner for non-MPLS transport
+      tunnels too, provided the tunnel can carry MPLS payload.</t>
     </section>
 
     <section title="Terminology">
@@ -189,111 +193,126 @@
       <t>Transport Family : BGP address family used for advertising tunnels,
       which are in turn used by service routes for resolution</t>
 
-      <t>Transport Tunnel : A tunnel over which a service may place
-      traffic. These tunnels can be GRE, UDP, LDP, RSVP, or SR-TE</t>
+      <t>Transport Tunnel : A tunnel over which a service may place traffic.
+      These tunnels can be GRE, UDP, LDP, RSVP, or SR-TE</t>
 
       <t>Tunnel Domain : A domain of the network containing SN and BN, under a
       single administrative control that has a tunnel between SN and BN. An
       end-to-end tunnel spanning several adjacent tunnel domains can be
       created by "stitching" them together using labels.</t>
 
-      <t>Transport Class : A group of transport tunnels offering the same type of service.</t>
+      <t>Transport Class : A group of transport tunnels offering the same type
+      of service.</t>
 
       <t>Transport Class RT : A BGP-VPN Route-Target used to identify a
-      specific transport class</t>
+      specific Transport Class</t>
 
-      <t>Transport RIB : At the SN and BN, a transport class has an associted
-      transport RIB that holds its tunnel routes.</t>
+      <t>Transport RIB : At the SN and BN, a Transport Class has an associted
+      Transport RIB that holds its tunnel routes.</t>
 
-      <t>Transport-VPN : Set of Transport-RTIs importing same
-      TransportClass-RT. Across tunnel domain boundaries these are stitched
-      together using option-b(nexthop-self, label-swap)-like mechanism.</t>
+      <t>Transport RTI : A Routing Instance; container of Transport RIB, and
+      associated Transport Class RT and RD.</t>
 
-      <t>Mapping-Community : Community on a service route, that maps it to
-      resolve over a Transport-class</t>
+      <t>Transport VPN : Set of Transport RTIs importing same Transport Class
+      RT. Across tunnel domain boundaries these are stitched together using
+      option-b(nexthop-self, label-swap)-like mechanism.</t>
+
+      <t>Mapping Community : Community on a service route, that maps it to
+      resolve over a Transport Class</t>
     </section>
 
     <section title="Transport Class">
-      <t>A transport class is defined as a collection of transport tunnels that
-      share certain characteristics useful for underlay selection.</t>
+      <t>A Transport Class is defined as a set of transport tunnels that share
+      certain characteristics useful for underlay selection.</t>
 
-      <t>On the wire, a transport class is represented as the
-      transport class Route-Target, which is a regular Route-Target
-      extended community.</t>
+      <t>On the wire, a transport class is represented as the Transport Class
+      RT, which is a regular Route-Target extended community.</t>
 
-      <t>A transport class is configured at SN and BN, along with attributes
-      like RD and Route-Target. The transport class instantiates a
-      transport RIB and transport routing instance.</t>
+      <t>A Transport Class is configured at SN and BN, along with attributes
+      like RD and Route-Target. Creation of a Transport Class instantiates the
+      associated Transport RIB and a Transport routing instance to contain
+      them all.</t>
 
       <t>The operator may configure a BN to classify a tunnel into an
-      appropriate transport class, which causes the tunnel's routes to be
-      installed in the corresponding transport RIB. These tunnel routes may then
-      be advertised into BGP.</t>
+      appropriate Transport Class, which causes the tunnel's ingress routes to
+      be installed in the corresponding Transport RIB. These tunnel routes may
+      then be advertised into BGP.</t>
 
-      <t>Alternatively, the transport routes received in BGP with appropriate
-      signaling information can associate those ingress routes to the
-      appropriate transport class. E.g. for TransportVpn family(SAFI 75)
-      routes, the TransportClass-RT indicates the transport class. For BGP-LU
+      <t>Alternatively, a router receiving the transport routes in BGP with
+      appropriate signaling information can associate those ingress routes to
+      the appropriate Transport Class. E.g. for Transport-VPN family(SAFI 75)
+      routes, the Transport Class RT indicates the Transport Class. For BGP-LU
       family(SAFI 4) routes, import policy based on Communities or inter-AS
-      source-peer may be used to place the route in the desired
-      transport class.</t>
+      source-peer may be used to place the route in the desired Transport
+      Class.</t>
 
       <t>When the ingress route is received via [BGP-SRTE], which encodes the
-      transport-class as an integer "Color" in the NLRI as "Color:Endpoint",
-      the color can be mapped to a transport class community, or Route-Target by
-      the receiving router, so that the ingress route for "Endpoint" is
-      installed in the transport RIB for the transport class. The BGP-SRTE
-      route when advertised out to BGP speakers in other domains will be
-      advertised in Transport-VPN family with TransportClass-RT and a new
+      Transport Class as an integer "Color" in the NLRI as "Color:Endpoint",
+      the Color can be mapped to a Transport Class during import processing.
+      The Color could map to a Community, or Route-Target that installs the
+      ingress route for "Endpoint" in the appropriate Transport RIB. The
+      BGP-SRTE route when advertised out to BGP speakers will then be
+      advertised in Transport-VPN family with Transport Class RT and a new
       label. The MPLS swap route thus installed for the new label will pop the
       label and deliver decapsulated-traffic into the path determined by SRTE
       route.</t>
     </section>
 
     <section title="Transport RIB">
-      <t>A transport RIB is a routing-only RIB that is not installed in
+      <t>A Transport RIB is a routing-only RIB that is not installed in
       forwarding path. However, the routes in this RIB are used to resolve
-      reachability of overlay routes' PNH. Transport RIBs are created when
-      the transport classes are configured.</t>
+      reachability of overlay routes' PNH. Transport RIB is created when the
+      Transport Class it represents is configured.</t>
 
-      <t>Overlay routes that want to use a specific transport class confine the
-      scope of nexthop resolution to the set of routes contained in the
-      corresponding transport RIB</t>
+      <t>Overlay routes that want to use a specific Transport Class confine
+      the scope of nexthop resolution to the set of routes contained in the
+      corresponding Transport RIB. This Transport RIB is the "Routing Table"
+      referred in [Section 9.1.2.1 RFC4271]</t>
 
-      <t>Routes in a transport rib are exported out in 'Transport VPN'
-      address family.</t>
+      <t>Routes in a Transport RIB are exported out in 'Transport-VPN' address
+      family.</t>
     </section>
 
     <section title="Transport Routing Instance">
-      <t>A BGP VPN routing instance is a container for the transport RIBs.
-      It imports, and exports routes with TransportClass-RT. Tunnel destination
-      addresses in this routing instance's context come from the
-      "provider namespace". This is different from user VRFs, which contain
-      prefixes in "customer namespace"</t>
+      <t>A BGP VPN routing instance that is a container for the Transport
+      RIBs. It imports, and exports routes in this RIB with Transport Class
+      RT. Tunnel destination addresses in this routing instance's context come
+      from the "provider namespace". This is different from user VRFs for
+      e.g., which contain prefixes in "customer namespace"</t>
 
-      <t>The transport routing instance uses the RD and routing instance
-      configured for the transport class.</t>
+      <t>The Transport Routing instance uses the RD and RT configured for the
+      Transport Class.</t>
     </section>
 
     <section title="Nexthop Resolution Scheme">
       <t>An implementation may provide an option for the service route to
-      resolve over less preferred transport RIBs, should resolution over
-      preferred, or "primary" transport RIB fail. To accomplish this, each
-      transport class may be associated with a user-configured "resolution
-      scheme", which consists of the primary transport RIB, and an ordered list
-      of fallback transport RIBs.</t>
+      resolve over less preferred Transport Classes, should the resolution
+      over preferred, or "primary" Transport Class fail. To accomplish this,
+      the set of service routes may be associated with a user-configured
+      "resolution scheme", which consists of the primary Transport Class, and
+      an ordered list of fallback Transport Classes. The resolution-scheme may
+      also be specified in terms of ordered list of Transport-RIBs</t>
 
-      <t>A route received in BGP Transport VPN family can be associated with a
-      resolution scheme using import policies. The import policies can match
-      against "mapping community", a community or "set of attributes" on the
-      service route that maps to a resolution scheme. When a route is received
-      with this attribute, it signifies the resolution scheme to use when
-      resolving the route's PNH.</t>
+      <t>A community may be used to map to a "resolution scheme", thus called
+      as "Mapping Community".</t>
+
+      <t>A service route received in BGP service family can be associated with
+      a resolution scheme using import policies. The import policies can match
+      against "Mapping community" or a "set of attributes" on the service
+      route that maps to a resolution scheme. When a route is received with
+      this attribute, it signifies the resolution scheme to use when resolving
+      the route's PNH.</t>
+
+      <t>A transport route received in BGP Transport-VPN family should use a
+      resolution scheme that contains only the primary Transport Class without
+      any fallback. The primary Transport Class will be identified by the
+      Transport Class RT carried on the route.</t>
     </section>
 
-    <section title="Transport-VPN BGP Family NLRI">
-      <t>The Transport-VPN family will use the existing AFI of IPv4 or IPv6, and
-      a new SAFI "TransportVpn" that will apply to both IPv4 and IPv6.</t>
+    <section title="BGP Transport-VPN Family NLRI">
+      <t>The Transport-VPN family will use the existing AFI of IPv4 or IPv6,
+      and a new SAFI "Transport-VPN" that will apply to both IPv4 and
+      IPv6.</t>
 
       <t>The NLRI encoding is exactly the same as RFC-4364 (AFI/SAFI = 1/128
       or 2/128) as stated in Fig 1.</t>
@@ -311,7 +330,7 @@
 ~                                                               |
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 
-          Figure 1: TransportVpn NLRI
+          Figure 1: Transport-VPN NLRI
 
 - Length:
 
@@ -347,61 +366,49 @@
     ignored on reception.</artwork>
       </figure>
 
-      <t>Attributes on a Transport-VPN route include the Route-Target
-      extended community, which is used to leak the route into the right
-      transport RIBs on SNs and BNs in the network.</t>
-
-      <t>We use a new AFI/SAFI instead of re-using SAFI 128 to carry these
-      transport routes, because it is operationally advantageous to keep
-      transport and service prefixes separate, and not mix in the same address
-      family. It allows to safely enable per-prefix-label allocation for
-      transport-VPN prefixes while not affecting SAFI 128 service
-      prefixes. Also, transport family re-advertisement path in a network would
-      be different than service route readvertisement path. viz.  Service routes
-      are exchanged over a EBGP multihop session between autonomous systems with
-      nexthop unchanged, while transport-VPN routes will need to be readvertised
-      over EBGP single-hop sessions with nexthop-self rewrite over inter-AS
-      links.</t>
+      <t>Attributes on a Transport-VPN route include the Route-Target extended
+      community, which is used to leak the route into the right Transport RIBs
+      on SNs and BNs in the network.</t>
     </section>
 
     <section title="Comparison with other families using RFC-8277 encoding">
-      <t>SAFI 128 (InetVpn) is a RFC-8277 encoded family that carries
-      service prefixes in the NLRI, where the prefixes come from the customer
-      namespaces, and are contexualized into separate user virtual
-      service RIBs called VRFs, using RFC-4364 procedures.</t>
+      <t>SAFI 128 (InetVpn) is a RFC-8277 encoded family that carries service
+      prefixes in the NLRI, where the prefixes come from the customer
+      namespaces, and are contexualized into separate user virtual service
+      RIBs called VRFs, using RFC-4364 procedures.</t>
 
-      <t>SAFI 4 (BGP-LU) is a RFC-8277 encoded family that carries
-      transport prefixes in the NLRI, where the prefixes come from the
-      provider namespace.</t>
+      <t>SAFI 4 (BGP-LU) is a RFC-8277 encoded family that carries transport
+      prefixes in the NLRI, where the prefixes come from the provider
+      namespace.</t>
 
-      <t>SAFI 75 (TransportVpn) is a RFC-8277 encoded family that carries
+      <t>SAFI 75 (Transport-VPN) is a RFC-8277 encoded family that carries
       transport prefixes in the NLRI, where the prefixes come from the
-      provider namespace, but are contexualized into separate transport RIBs,
+      provider namespace, but are contexualized into separate Transport RIBs,
       using RFC-4364 procedures.</t>
 
-      <t>It is worth noting that SAFI 128 has been used to carry
-      transport prefixes in "L3VPN Inter-AS Carrier's carrier" scenario, where
+      <t>It is worth noting that SAFI 128 has been used to carry transport
+      prefixes in "L3VPN Inter-AS Carrier's carrier" scenario, where
       BGP-LU/LDP prefixes in CsC VRF are advertised in SAFI 128 to the
-      remote-end baby carrier. </t>
+      remote-end baby carrier.</t>
 
       <t>In this document we use a new AFI/SAFI instead of re-using SAFI 128
       to carry these transport-routes, because it is operationally
       advantageous to keep transport and service prefixes separate, and not
       mix in same address-family or rib. E.g. it allows to safely enable
-      per-prefix-label allocation for transport-VPN prefixes while not
+      per-prefix-label allocation for Transport-VPN prefixes while not
       affecting SAFI 128 service-prefixes which have huge-scale. Also,
       re-advertisement path of transport-family routes in a network would be
       different than service-route readvertisement path. viz. Service-routes
       are exchanged over a EBGP multihop session between Autonomous-systems
-      with nexthop unchanged; where-as transport-VPN routes are readvertised
+      with nexthop unchanged; where-as Transport-VPN routes are readvertised
       over EBGP single-hop sessions with nexthop-self rewrite over inter-AS
       links.</t>
 
-      <t>This family TransportVpn is similar in vein to BGP-LU, in that it
+      <t>The Transport-VPN family is similar in vein to BGP-LU, in that it
       carries transport prefixes. The only difference is, it also carries in
-      Route Target an indication of which transport class the transport prefix
-      belongs to, and has means, such as RD, to disambiguate multiple instances
-      of the same transport prefix when carried in BGP update messages. </t>
+      Route Target an indication of which Transport Class the transport prefix
+      belongs to, and uses RD to disambiguate multiple instances of the same
+      transport prefix in a BGP Update.</t>
     </section>
 
     <section title="Protocol Procedures">
@@ -411,67 +418,68 @@
       <t>Preparing the network for deploying Transport-VPNs</t>
 
       <t><list>
-          <t>Operator decides on the transport classes that exist in the
-          network, and allocates a Route-Target to identify each transport
-          class.</t>
+          <t>Operator decides on the Transport Classes that exist in the
+          network, and allocates a Route-Target to identify each Transport
+          Class.</t>
 
-          <t>Operator configures transport classes on the SNs and BNs in the
+          <t>Operator configures Transport Classes on the SNs and BNs in the
           network with unique Route-Distinguishers and Route-Targets.</t>
 
-          <t>Implementations may provide automatic generation and assignment of
-          RD, RT values for a transport routing instance; they should also
+          <t>Implementations may provide automatic generation and assignment
+          of RD, RT values for a transport routing instance; they should also
           provide a way to manually override the automatic mechanism, in order
-          to deal with any conflicts that may arise with existing RD, RT values
-          in the network.</t>
+          to deal with any conflicts that may arise with existing RD, RT
+          values in the network.</t>
         </list></t>
 
       <t>Origination of Transport-VPN route:</t>
 
       <t><list>
           <t>At the ingress node of the tunnel's egress domain, the tunneling
-          protocols install routes in the transport RIB associated with the
-          transport class the tunnel belongs to. The ingress node then
+          protocols install routes in the Transport RIB associated with the
+          Transport Class the tunnel belongs to. The ingress node then
           advertises this tunnel route into BGP as a Transport-VPN route with
           NLRI RD:TunnelEndpoint, attaching a Route-Target that identifies the
-          transport class.</t>
+          Transport Class.</t>
 
           <t>Alternatively, the egress node of the tunnel i.e. the tunnel
           endpoint can originate the BGP Transport-VPN route, with NLRI
-          RD:TunnelEndpoint and PNH TunnelEndpoint, which will resolve over the
-          tunnel route at the ingress node. When the tunnel is up, the
+          RD:TunnelEndpoint and PNH TunnelEndpoint, which will resolve over
+          the tunnel route at the ingress node. When the tunnel is up, the
           Transport-VPN route will become usable and get re-advertised.</t>
         </list></t>
 
-      <t>Ingress node receiving transport-VPN route<list>
-          <t>On receiving a BGP transport-vpn route with a PNH that is not
+      <t>Ingress node receiving Transport-VPN route<list>
+          <t>On receiving a BGP Transport-VPN route with a PNH that is not
           directly connected, e.g. an IBGP-route, the Route-Target on the
-          route indicates which transport class this route belongs to. The
-          routes in the associated transport RIB are used to resolve the
-          received PNH. If there does not exist a route in the transport RIB
-          for the PNH, the transport-vpn route is considered unusable, and
+          route indicates which Transport Class this route belongs to. The
+          routes in the associated Transport RIB are used to resolve the
+          received PNH. If there does not exist a route in the Transport RIB
+          for the PNH, the Transport-VPN route is considered unusable, and
           MUST not be re-advertised further.</t>
         </list></t>
 
-      <t>Border node readvertising transport-VPN route with nexthop self:<list>
+      <t>Border node readvertising Transport-VPN route with nexthop self:<list>
           <t>The BN allocates an MPLS label to advertise upstream in
-          transport-vpn NLRI. The BN also installs an MPLS swap-route for that
-          label that pops the label and pushes received traffic to the
-          transport tunnel or direct interface that the transport-vpn route's
-          PNH resolved over.</t>
+          Transport-VPN NLRI. The BN also installs an MPLS swap-route for that
+          label that swaps the incoming label with a label received from the
+          downstream BGP speaker, or pops the incoming label. And then pushes
+          received traffic to the transport tunnel or direct interface that
+          the Transport-VPN route's PNH resolved over.</t>
         </list></t>
 
-      <t>Border node receiving transport-VPN route on EBGP :<list>
+      <t>Border node receiving Transport-VPN route on EBGP :<list>
           <t>If the route is received with PNH that is known to be directly
           connected, e.g. EBGP single-hop peering address, the directly
           connected interface is checked for MPLS forwarding capability. No
           other nexthop resolution process is performed, as the inter-AS link
-          can be used for any transport class.</t>
+          can be used for any Transport Class.</t>
 
-          <t>If the inter-AS links should honor transport class, then the BN
+          <t>If the inter-AS links should honor Transport Class, then the BN
           should follow procedures of an Ingress node described above, and
           perform nexthop resolution process. The interface routes should be
-          installed in the transport rib belonging to the associated
-          transport class.</t>
+          installed in the Transport RIB belonging to the associated Transport
+          Class.</t>
         </list></t>
 
       <t>Avoiding path-hiding through Route Reflectors<list>
@@ -484,10 +492,10 @@
 
       <t>Ingress node receiving service route with mapping community<list>
           <t>Service routes received with mapping community resolve using
-          transport RIB associated with the mapped transport class. If the
-          resolution process does not find an usable transport VPN route or
-          tunnel route, the service route MUST be considered unusable for
-          forwarding purpose.</t>
+          Transport RIBs determined by the resolution scheme. If the
+          resolution process does not find an usable Transport-VPN route or
+          tunnel route in any of the Transport RIBs, the service route MUST be
+          considered unusable for forwarding purpose.</t>
         </list></t>
 
       <t>Coordinating between domains using different community
@@ -496,12 +504,13 @@
           of independently administered community namespaces may deploy
           mechanisms to map and rewrite the Route-target values on domain
           boundaries, using per ASBR import policies. This is no different
-          than any other BGP VPN family. The mechanisms employed in inter-AS
-          VPN deployments may be used with the transport-vpn family also.</t>
+          than any other BGP VPN family. Mechanisms employed in inter-AS VPN
+          deployments may be used with the Transport-VPN family also.</t>
 
-          <t>Though RD can also be rewritten on domain boundaries, we recommend
-          deploying unique RDs, because it helps in trouble-shooting by uniquely
-          identifying originator of a route, and avoids path-hiding.</t>
+          <t>Though RD can also be rewritten on domain boundaries, deploying
+          unique RDs is strongly recommended, because it helps in trouble
+          shooting by uniquely identifying originator of a route, and avoids
+          path-hiding.</t>
         </list></t>
     </section>
 
@@ -519,10 +528,10 @@
 
       <t><list style="symbols">
           <t>"Inet, Transport-Vpn". AFI/SAFI = "1/75" for carrying IPv4
-          transport-VPN prefixes.</t>
+          Transport-VPN prefixes.</t>
 
           <t>"Inet6, Transport-Vpn". AFI/SAFI = "2/75" for carrying IPv6
-          transport-VPN prefixes.</t>
+          Transport-VPN prefixes.</t>
         </list></t>
 
       <t>Note to RFC Editor: this section may be removed on publication as an
@@ -546,6 +555,10 @@
     </section>
 
     <section anchor="References" title="References">
+      <t>[Section 9.1.2.1 RFC4271]
+      https://tools.ietf.org/html/rfc4271#section-9.1.2.1, A Border Gateway
+      Protocol 4 (BGP-4)</t>
+
       <t>[RFC-4364] BGP/MPLS IP Virtual Private Networks (VPNs)</t>
 
       <t>[RFC-8277] Using BGP to Bind MPLS Labels to Address Prefixes</t>
