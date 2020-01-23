@@ -131,7 +131,7 @@
       differnet signaling protocol. A domain boundary is demarcated by a
       rewrite of BGP nexthop to 'self' while re-advertising tunnel routes in
       BGP. The path uses MPLS label-switching when crossing inter-AS links and
-      uses the native intra-AS tunnel of the desired traffic class when
+      uses the native intra-AS tunnel of the desired transport class when
       traversing within a domain.</t>
 
       <t>Overlay routes carry sufficient indication of the Transport Class
@@ -288,26 +288,32 @@
     <section title="Nexthop Resolution Scheme">
       <t>An implementation may provide an option for the service route to
       resolve over less preferred Transport Classes, should the resolution
-      over preferred, or "primary" Transport Class fail. To accomplish this,
-      the set of service routes may be associated with a user-configured
-      "resolution scheme", which consists of the primary Transport Class, and
-      an ordered list of fallback Transport Classes. The resolution-scheme may
-      also be specified in terms of ordered list of Transport-RIBs</t>
+      over preferred, or "primary" Transport Class fail.</t>
 
-      <t>A community may be used to map to a "resolution scheme", thus called
-      as "Mapping Community".</t>
+      <t>To accomplish this, the set of service routes may be associated with
+      a user-configured "resolution scheme", which consists of the primary
+      Transport Class, and an ordered list of fallback Transport Classes. </t>
 
-      <t>A service route received in BGP service family can be associated with
-      a resolution scheme using import policies. The import policies can match
-      against "Mapping community" or a "set of attributes" on the service
-      route that maps to a resolution scheme. When a route is received with
-      this attribute, it signifies the resolution scheme to use when resolving
-      the route's PNH.</t>
+      <t>A community called as "Mapping Community" is configured for a
+      "resolution scheme". A Mapping community maps to exactly one resolution
+      scheme.</t>
+
+      <t>When a resolution scheme comprises of a primary Transport Class
+      without any fallback, the Transport Class RT associated with the primary
+      Transport Class is used as the Mapping Community.</t>
+
+      <t>A BGP service route is associated with a resolution scheme during
+      import processing. The import processing matches against "Mapping
+      Community" on the service route and determines the resolution scheme
+      that should be used when resolving the route's PNH. If the route
+      contains more than one Mapping Communities, the first one mapping to a
+      resolution scheme is chosen. </t>
 
       <t>A transport route received in BGP Transport-VPN family should use a
       resolution scheme that contains only the primary Transport Class without
-      any fallback. The primary Transport Class will be identified by the
-      Transport Class RT carried on the route.</t>
+      any fallbacks. The primary Transport Class is identified by the
+      Transport Class RT carried on the route. Thus Transport Class RT serves
+      as the Mapping Community for Transport-VPN routes.</t>
     </section>
 
     <section title="BGP Transport-VPN Family NLRI">
