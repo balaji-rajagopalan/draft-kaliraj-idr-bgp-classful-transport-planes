@@ -4,15 +4,13 @@
 
 Network Working Group                                   K. Vairavakkalai
 Internet-Draft                                           N. Venkataraman
-Intended status: Experimental                             B. Rajagopalan
-Expires: July 1, 2020                             Juniper Networks, Inc.
-
-
-                                                       December 29, 2019
+Intended status: Standards Track                          B. Rajagopalan
+Expires: September 8, 2020                        Juniper Networks, Inc.
+                                                          March 07, 2020
 
 
                            BGP Transport VPNs
-                draft-kaliraj-idr-bgp-transport-vpns-00
+                 draft-kaliraj-idr-bgp-transport-vpn-00
 
 Abstract
 
@@ -25,8 +23,8 @@ Abstract
    tunnels to the same destination.
 
    A new BGP transport address family is defined for this purpose that
-   uses BGP-VPN technology (RFC 4364) and follows RLI-8277 NLRI
-   encoding.  This new address family is called "Transport VPN".
+   uses BGP-VPN [RFC4364] technology and follows MPLS-BGP [RFC8277] NLRI
+   encoding.  This new address family is called "Transport-VPN".
 
 Requirements Language
 
@@ -49,18 +47,20 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on July 1, 2020.
+   This Internet-Draft will expire on September 8, 2020.
 
 
 
-Vairavakkalai, et al.     Expires July 1, 2020                  [Page 1]
+
+
+Vairavakkalai, et al.   Expires September 8, 2020               [Page 1]
 
-Internet-Draft             BGP Transport VPNs              December 2019
+Internet-Draft             BGP Transport VPNs                 March 2020
 
 
 Copyright Notice
 
-   Copyright (c) 2019 IETF Trust and the persons identified as the
+   Copyright (c) 2020 IETF Trust and the persons identified as the
    document authors.  All rights reserved.
 
    This document is subject to BCP 78 and the IETF Trust's Legal
@@ -82,14 +82,13 @@ Table of Contents
    5.  Transport Routing Instance  . . . . . . . . . . . . . . . . .   6
    6.  Nexthop Resolution Scheme . . . . . . . . . . . . . . . . . .   6
    7.  BGP Transport-VPN Family NLRI . . . . . . . . . . . . . . . .   7
-   8.  Comparison with other families using RFC-8277 encoding  . . .   8
-   9.  Protocol Procedures . . . . . . . . . . . . . . . . . . . . .   9
-   10. OAM considerations  . . . . . . . . . . . . . . . . . . . . .  11
-   11. IANA Considerations . . . . . . . . . . . . . . . . . . . . .  11
+   8.  Comparison with other families using RFC-8277 encoding  . . .   7
+   9.  Protocol Procedures . . . . . . . . . . . . . . . . . . . . .   8
+   10. OAM considerations  . . . . . . . . . . . . . . . . . . . . .  10
+   11. IANA Considerations . . . . . . . . . . . . . . . . . . . . .  10
    12. Security Considerations . . . . . . . . . . . . . . . . . . .  11
    13. Acknowledgements  . . . . . . . . . . . . . . . . . . . . . .  11
-   14. References  . . . . . . . . . . . . . . . . . . . . . . . . .  12
-   15. Normative References  . . . . . . . . . . . . . . . . . . . .  12
+   14. Normative References  . . . . . . . . . . . . . . . . . . . .  11
    Authors' Addresses  . . . . . . . . . . . . . . . . . . . . . . .  12
 
 1.  Introduction
@@ -106,15 +105,15 @@ Table of Contents
    terminating in various nodes, each satisfying the properties of the
    class.  For example, a "Gold" transport class may consist of tunnels
    that traverse the shortest path with fast re-route protection, a
-
-
-
-Vairavakkalai, et al.     Expires July 1, 2020                  [Page 2]
-
-Internet-Draft             BGP Transport VPNs              December 2019
-
-
    "Silver" transport class may hold tunnels that traverse shortest
+
+
+
+Vairavakkalai, et al.   Expires September 8, 2020               [Page 2]
+
+Internet-Draft             BGP Transport VPNs                 March 2020
+
+
    paths without protection, a "To NbrAS Foo" transport class may hold
    tunnels that exit to neighboring AS Foo, and so on.
 
@@ -165,9 +164,10 @@ Internet-Draft             BGP Transport VPNs              December 2019
 
 
 
-Vairavakkalai, et al.     Expires July 1, 2020                  [Page 3]
+
+Vairavakkalai, et al.   Expires September 8, 2020               [Page 3]
 
-Internet-Draft             BGP Transport VPNs              December 2019
+Internet-Draft             BGP Transport VPNs                 March 2020
 
 
 2.  Terminology
@@ -182,7 +182,7 @@ Internet-Draft             BGP Transport VPNs              December 2019
 
    TN : Transport Node, P-router
 
-   BGP-VPN : VPNs built using RFC-4364 mechanisms
+   BGP-VPN : VPNs built using RFC4364 mechanisms
 
    RT : Route-Target extended community
 
@@ -216,14 +216,14 @@ Internet-Draft             BGP Transport VPNs              December 2019
    Transport RTI : A Routing Instance; container of Transport RIB, and
    associated Transport Class RT and RD.
 
-   Transport VPN : Set of Transport RTIs importing same Transport Class
+   Transport-VPN : Set of Transport RTIs importing same Transport Class
    RT.  These are inturn stitched together to span across tunnel domain
 
 
 
-Vairavakkalai, et al.     Expires July 1, 2020                  [Page 4]
+Vairavakkalai, et al.   Expires September 8, 2020               [Page 4]
 
-Internet-Draft             BGP Transport VPNs              December 2019
+Internet-Draft             BGP Transport VPNs                 March 2020
 
 
    boundaries using a mechanism similar to Inter-AS option-b to swap
@@ -253,18 +253,18 @@ Internet-Draft             BGP Transport VPNs              December 2019
    Alternatively, a router receiving the transport routes in BGP with
    appropriate signaling information can associate those ingress routes
    to the appropriate Transport Class.  E.g. for Transport-VPN
-   family(SAFI 75) routes, the Transport Class RT indicates the
+   family(SAFI TBD) routes, the Transport Class RT indicates the
    Transport Class.  For BGP-LU family(SAFI 4) routes, import policy
    based on Communities or inter-AS source-peer may be used to place the
    route in the desired Transport Class.
 
-   When the ingress route is received via [BGP-SRTE], which encodes the
+   When the ingress route is received via SRTE [SRTE], which encodes the
    Transport Class as an integer "Color" in the NLRI as
    "Color:Endpoint", the Color can be mapped to a Transport Class during
    import processing.  The Color could map to a Community, or Route-
    Target that installs the ingress route for "Endpoint" in the
-   appropriate Transport RIB.  The BGP-SRTE route when advertised out to
-   BGP speakers will then be advertised in Transport-VPN family with
+   appropriate Transport RIB.  The SRTE route when advertised out to BGP
+   speakers will then be advertised in Transport-VPN family with
    Transport Class RT and a new label.  The MPLS swap route thus
    installed for the new label will pop the label and deliver
    decapsulated-traffic into the path determined by SRTE route.
@@ -277,9 +277,9 @@ Internet-Draft             BGP Transport VPNs              December 2019
 
 
 
-Vairavakkalai, et al.     Expires July 1, 2020                  [Page 5]
+Vairavakkalai, et al.   Expires September 8, 2020               [Page 5]
 
-Internet-Draft             BGP Transport VPNs              December 2019
+Internet-Draft             BGP Transport VPNs                 March 2020
 
 
 4.  Transport RIB
@@ -292,7 +292,7 @@ Internet-Draft             BGP Transport VPNs              December 2019
    Overlay routes that want to use a specific Transport Class confine
    the scope of nexthop resolution to the set of routes contained in the
    corresponding Transport RIB.  This Transport RIB is the "Routing
-   Table" referred in [Section 9.1.2.1 RFC4271]
+   Table" referred in Section 9.1.2.1 RFC4271 [1]
 
    Routes in a Transport RIB are exported out in 'Transport-VPN' address
    family.
@@ -333,9 +333,9 @@ Internet-Draft             BGP Transport VPNs              December 2019
 
 
 
-Vairavakkalai, et al.     Expires July 1, 2020                  [Page 6]
+Vairavakkalai, et al.   Expires September 8, 2020               [Page 6]
 
-Internet-Draft             BGP Transport VPNs              December 2019
+Internet-Draft             BGP Transport VPNs                 March 2020
 
 
    contains more than one Mapping Communities, the first one mapping to
@@ -350,64 +350,16 @@ Internet-Draft             BGP Transport VPNs              December 2019
 7.  BGP Transport-VPN Family NLRI
 
    The Transport-VPN family will use the existing AFI of IPv4 or IPv6,
-   and a new SAFI "Transport-VPN" that will apply to both IPv4 and IPv6.
+   and a new SAFI TBD "Transport-VPN" that will apply to both IPv4 and
+   IPv6 AFIs.
 
-   The NLRI encoding is exactly the same as RFC-4364 (AFI/SAFI = 1/128
-   or 2/128) as stated in Fig 1.
+   The "Transport-VPN" SAFI NLRI itself is encoded as specified in
+   https://tools.ietf.org/html/rfc8277#section-2 [RFC8277].
 
-    0                   1                   2                   3
-    0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
-   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-   |    Length     |                 Label                 |Rsrv |S|
-   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-   |                          RD                                   ~
-   ~                                                               |
-   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-   |                          Prefix                               ~
-   ~                                                               |
-   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-
-             Figure 1: Transport-VPN NLRI
-
-   - Length:
-
-       The Length field consists of a single octet.  It specifies the
-       length in bits of the remainder of the NLRI field.
-
-       Note that the length will always be the sum of 20 (number of bits
-       in Label field), plus 3 (number of bits in Rsrv field), plus 1
-       (number of bits in S field), plus the length in bits of the
-       prefix.
-
-       In an MP_REACH_NLRI attribute whose SAFI is TBD, the prefix will
-       be 96 bits or less if the AFI is 1 and will be 192 bits or less
-       if the AFI is 2.
-
-       As specified in [RFC4760], the actual length of the NLRI field
-       will be the number of bits specified in the Length field,
-       rounded up to the nearest integral number of octets.
-
-
-
-Vairavakkalai, et al.     Expires July 1, 2020                  [Page 7]
-
-Internet-Draft             BGP Transport VPNs              December 2019
-
-
-   - Label:
-
-       The Label field is a 20-bit field containing an MPLS label value
-       (see [RFC3032]).
-
-   - Rsrv:
-
-       This 3-bit field SHOULD be set to zero on transmission and MUST
-       be ignored on reception.
-
-   - S:
-
-       This 1-bit field MUST be set to one on transmission and MUST be
-       ignored on reception.
+   When AFI is IPv4 the "Prefix" portion of Transport-VPN family NLRI
+   consists of an 8-byte RD followed by an IPv4 prefix.  When AFI is
+   IPv6 the "Prefix" consists of an 8-byte RD followed by an IPv6
+   prefix.
 
    Attributes on a Transport-VPN route include the Route-Target extended
    community, which is used to leak the route into the right Transport
@@ -415,24 +367,32 @@ Internet-Draft             BGP Transport VPNs              December 2019
 
 8.  Comparison with other families using RFC-8277 encoding
 
-   SAFI 128 (InetVpn) is a RFC-8277 encoded family that carries service
+   SAFI 128 (Inet-VPN) is a RF8277 encoded family that carries service
    prefixes in the NLRI, where the prefixes come from the customer
    namespaces, and are contexualized into separate user virtual service
-   RIBs called VRFs, using RFC-4364 procedures.
+   RIBs called VRFs, using RFC4364 procedures.
 
-   SAFI 4 (BGP-LU) is a RFC-8277 encoded family that carries transport
+   SAFI 4 (BGP-LU) is a RFC8277 encoded family that carries transport
    prefixes in the NLRI, where the prefixes come from the provider
    namespace.
 
-   SAFI 75 (Transport-VPN) is a RFC-8277 encoded family that carries
+   SAFI TBD (Transport-VPN) is a RFC8277 encoded family that carries
    transport prefixes in the NLRI, where the prefixes come from the
    provider namespace, but are contexualized into separate Transport
-   RIBs, using RFC-4364 procedures.
+   RIBs, using RFC4364 procedures.
 
    It is worth noting that SAFI 128 has been used to carry transport
    prefixes in "L3VPN Inter-AS Carrier's carrier" scenario, where BGP-LU
    /LDP prefixes in CsC VRF are advertised in SAFI 128 to the remote-end
    baby carrier.
+
+
+
+
+Vairavakkalai, et al.   Expires September 8, 2020               [Page 7]
+
+Internet-Draft             BGP Transport VPNs                 March 2020
+
 
    In this document a new AFI/SAFI is used instead of reusing SAFI 128
    to carry these transport routes, because it is operationally
@@ -442,14 +402,6 @@ Internet-Draft             BGP Transport VPNs              December 2019
    without affecting SAFI 128 service prefixes which may have huge
    scale. "per prefix" label allocation scheme keeps the routing churn
    local during topology changes.  A new family also facilitates having
-
-
-
-Vairavakkalai, et al.     Expires July 1, 2020                  [Page 8]
-
-Internet-Draft             BGP Transport VPNs              December 2019
-
-
    a different readvertisement path of the transport family routes in a
    network than the service route readvertisement path. viz. Service
    routes are exchanged over an EBGP multihop sessions between
@@ -485,6 +437,19 @@ Internet-Draft             BGP Transport VPNs              December 2019
 
    Origination of Transport-VPN route:
 
+
+
+
+
+
+
+
+
+Vairavakkalai, et al.   Expires September 8, 2020               [Page 8]
+
+Internet-Draft             BGP Transport VPNs                 March 2020
+
+
       At the ingress node of the tunnel's egress domain, the tunneling
       protocols install routes in the Transport RIB associated with the
       Transport Class the tunnel belongs to.  The ingress node then
@@ -498,13 +463,9 @@ Internet-Draft             BGP Transport VPNs              December 2019
       the tunnel route at the ingress node.  When the tunnel is up, the
       Transport-VPN route will become usable and get re-advertised.
 
-
-
-
-Vairavakkalai, et al.     Expires July 1, 2020                  [Page 9]
-
-Internet-Draft             BGP Transport VPNs              December 2019
-
+      Unique RD is used by the originator of a Transport-VPN route to
+      disambiguate the multiple BGP advertisements for a transport end
+      point.
 
    Ingress node receiving Transport-VPN route
 
@@ -533,6 +494,18 @@ Internet-Draft             BGP Transport VPNs              December 2019
       other nexthop resolution process is performed, as the inter-AS
       link can be used for any Transport Class.
 
+
+
+
+
+
+
+
+Vairavakkalai, et al.   Expires September 8, 2020               [Page 9]
+
+Internet-Draft             BGP Transport VPNs                 March 2020
+
+
       If the inter-AS links should honor Transport Class, then the BN
       should follow procedures of an Ingress node described above, and
       perform nexthop resolution process.  The interface routes should
@@ -542,10 +515,10 @@ Internet-Draft             BGP Transport VPNs              December 2019
    Avoiding path-hiding through Route Reflectors
 
       When multiple BNs exist that advertise a RDn:PEn prefix to RRs,
-      the RRs may hide all but one of the BNs, unless [ADDPATH] is used
-      for the Transport-VPN family.  This is similar to L3VPN option-B
-      scenarios.  Hence [ADDPATH] should be used for Transport-VPN
-      family, to avoid path-hiding through RRs.
+      the RRs may hide all but one of the BNs, unless ADDPATH [RFC7911]
+      is used for the Transport-VPN family.  This is similar to L3VPN
+      option-B scenarios.  Hence ADDPATH should be used for Transport-
+      VPN family, to avoid path-hiding through RRs.
 
    Ingress node receiving service route with mapping community
 
@@ -554,13 +527,6 @@ Internet-Draft             BGP Transport VPNs              December 2019
       resolution process does not find an usable Transport-VPN route or
       tunnel route in any of the Transport RIBs, the service route MUST
       be considered unusable for forwarding purpose.
-
-
-
-Vairavakkalai, et al.     Expires July 1, 2020                 [Page 10]
-
-Internet-Draft             BGP Transport VPNs              December 2019
-
 
    Coordinating between domains using different community namespaces.
 
@@ -576,6 +542,11 @@ Internet-Draft             BGP Transport VPNs              December 2019
       shooting by uniquely identifying originator of a route, and avoids
       path-hiding.
 
+      Future versions of this document may define a new format of Route-
+      Target extended-community to carry Transport Class, to avoid
+      collision with regular Route Target namespace used by service
+      routes.
+
 10.  OAM considerations
 
    TBD
@@ -584,15 +555,22 @@ Internet-Draft             BGP Transport VPNs              December 2019
 
    This document makes following requests of IANA.
 
-   New BGP SAFI code for "Transport-VPN".  Value 75.
+
+
+Vairavakkalai, et al.   Expires September 8, 2020              [Page 10]
+
+Internet-Draft             BGP Transport VPNs                 March 2020
+
+
+   New BGP SAFI code for "Transport-VPN".  Value TBD.
 
    This will be used to create new AFI,SAFI pairs for IPv4, IPv6
-   Transport-Vpn families. viz:
+   Transport-VPN families. viz:
 
-   o  "Inet, Transport-Vpn".  AFI/SAFI = "1/75" for carrying IPv4
+   o  "Inet, Transport-VPN".  AFI/SAFI = "1/TBD" for carrying IPv4
       Transport-VPN prefixes.
 
-   o  "Inet6, Transport-Vpn".  AFI/SAFI = "2/75" for carrying IPv6
+   o  "Inet6, Transport-VPN".  AFI/SAFI = "2/TBD" for carrying IPv6
       Transport-VPN prefixes.
 
    Note to RFC Editor: this section may be removed on publication as an
@@ -600,8 +578,15 @@ Internet-Draft             BGP Transport VPNs              December 2019
 
 12.  Security Considerations
 
-   Mechanisms described in this document dont have any adverse impact on
-   security of a network.
+   Mechanisms described in this document carry Transport routes in a new
+   BGP address family.  That minimizes possibility of these routes
+   leaking outside the expected domain or mixing with service routes.
+
+   When redistributing between SAFI 4 and SAFI TBD Transport-VPN routes,
+   there is a possibility of SAFI 4 routes mixing with SAFI 1 service
+   routes.  To avoid such scenarios, it is recommended that
+   implementations support keeping SAFI 4 routes in a separate transport
+   RIB, distinct from service RIB that contain SAFI 1 service routes.
 
 13.  Acknowledgements
 
@@ -610,38 +595,45 @@ Internet-Draft             BGP Transport VPNs              December 2019
    Krzysztof Szarkowicz, John E Drake, Srihari Sangli, Vijay Kestur,
    Santosh Kolenchery for the valuable discussions.
 
-
-
-
-Vairavakkalai, et al.     Expires July 1, 2020                 [Page 11]
-
-Internet-Draft             BGP Transport VPNs              December 2019
-
-
    The decision to not reuse SAFI 128 and create a new address-family to
    carry these transport-routes was based on suggestion made by Richard
    Roberts and Krzysztof Szarkowicz.
 
-14.  References
-
-   [Section 9.1.2.1 RFC4271] https://tools.ietf.org/html/
-   rfc4271#section-9.1.2.1, A Border Gateway Protocol 4 (BGP-4)
-
-   [RFC-4364] BGP/MPLS IP Virtual Private Networks (VPNs)
-
-   [RFC-8277] Using BGP to Bind MPLS Labels to Address Prefixes
-
-   [ADDPATH] RFC-7911 - Advertisement of Multiple Paths in BGP
-
-   [BGP-SRTE] Advertising Segment Routing Policies in BGP, draft-ietf-
-   idr-segment-routing-te-policy-08
-
-15.  Normative References
+14.  Normative References
 
    [RFC2119]  Bradner, S., "Key words for use in RFCs to Indicate
               Requirement Levels", BCP 14, RFC 2119, DOI 10.17487/
               RFC2119, March 1997, <https://www.rfc-editor.org/info/
               rfc2119>.
+
+   [RFC4271]  Rekhter, Y., Ed., Li, T., Ed., and S. Hares, Ed., "A
+              Border Gateway Protocol 4 (BGP-4)", RFC 4271, DOI 10.17487
+              /RFC4271, January 2006, <https://www.rfc-editor.org/info/
+              rfc4271>.
+
+
+
+Vairavakkalai, et al.   Expires September 8, 2020              [Page 11]
+
+Internet-Draft             BGP Transport VPNs                 March 2020
+
+
+   [RFC4364]  Rosen, E. and Y. Rekhter, "BGP/MPLS IP Virtual Private
+              Networks (VPNs)", RFC 4364, DOI 10.17487/RFC4364, February
+              2006, <https://www.rfc-editor.org/info/rfc4364>.
+
+   [RFC7911]  Walton, D., Retana, A., Chen, E., and J. Scudder,
+              "Advertisement of Multiple Paths in BGP", RFC 7911, DOI
+              10.17487/RFC7911, July 2016, <https://www.rfc-editor.org/
+              info/rfc7911>.
+
+   [RFC8277]  Rosen, E., "Using BGP to Bind MPLS Labels to Address
+              Prefixes", RFC 8277, DOI 10.17487/RFC8277, October 2017,
+              <https://www.rfc-editor.org/info/rfc8277>.
+
+   [SRTE]     Previdi, S., Ed., "Advertising Segment Routing Policies in
+              BGP", 11 2019, <https://tools.ietf.org/html/draft-ietf-
+              idr-segment-routing-te-policy-08>.
 
 Authors' Addresses
 
@@ -663,17 +655,6 @@ Authors' Addresses
    Email: natv@juniper.net
 
 
-
-
-
-
-
-
-Vairavakkalai, et al.     Expires July 1, 2020                 [Page 12]
-
-Internet-Draft             BGP Transport VPNs              December 2019
-
-
    Balaji Rajagopalan
    Juniper Networks, Inc.
    Electra, Exora Business Park~Marathahalli - Sarjapur Outer Ring Road,
@@ -688,41 +669,4 @@ Internet-Draft             BGP Transport VPNs              December 2019
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-Vairavakkalai, et al.     Expires July 1, 2020                 [Page 13]
+Vairavakkalai, et al.   Expires September 8, 2020              [Page 12]

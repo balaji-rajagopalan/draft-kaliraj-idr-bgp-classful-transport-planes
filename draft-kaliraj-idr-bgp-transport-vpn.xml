@@ -10,7 +10,7 @@
 <?rfc inline="yes"?>
 <?rfc compact="yes"?>
 <?rfc subcompact="no"?>
-<rfc category="exp" docName="draft-kaliraj-idr-bgp-transport-vpns-00"
+<rfc category="std" docName="draft-kaliraj-idr-bgp-transport-vpn-00"
      ipr="trust200902">
   <front>
     <title abbrev="BGP Transport VPNs">BGP Transport VPNs</title>
@@ -78,9 +78,7 @@
       </address>
     </author>
 
-    <author/>
-
-    <date day="29" month="December" year="2019"/>
+    <date day="07" month="March" year="2020"/>
 
     <abstract>
       <t>This document specifies a mechanism, referred to as "service
@@ -92,8 +90,9 @@
       destination.</t>
 
       <t>A new BGP transport address family is defined for this purpose that
-      uses BGP-VPN technology (RFC 4364) and follows RLI-8277 NLRI encoding.
-      This new address family is called "Transport VPN".</t>
+      uses <xref target="RFC4364">BGP-VPN</xref> technology and follows <xref
+      target="RFC8277">MPLS-BGP</xref> NLRI encoding. This new address family
+      is called "Transport-VPN".</t>
     </abstract>
 
     <note title="Requirements Language">
@@ -179,7 +178,7 @@
 
       <t>TN : Transport Node, P-router</t>
 
-      <t>BGP-VPN : VPNs built using RFC-4364 mechanisms</t>
+      <t>BGP-VPN : VPNs built using RFC4364 mechanisms</t>
 
       <t>RT : Route-Target extended community</t>
 
@@ -213,7 +212,7 @@
       <t>Transport RTI : A Routing Instance; container of Transport RIB, and
       associated Transport Class RT and RD.</t>
 
-      <t>Transport VPN : Set of Transport RTIs importing same Transport Class
+      <t>Transport-VPN : Set of Transport RTIs importing same Transport Class
       RT. These are inturn stitched together to span across tunnel domain
       boundaries using a mechanism similar to Inter-AS option-b to swap labels
       at BN (nexthop-self).</t>
@@ -241,22 +240,22 @@
 
       <t>Alternatively, a router receiving the transport routes in BGP with
       appropriate signaling information can associate those ingress routes to
-      the appropriate Transport Class. E.g. for Transport-VPN family(SAFI 75)
+      the appropriate Transport Class. E.g. for Transport-VPN family(SAFI TBD)
       routes, the Transport Class RT indicates the Transport Class. For BGP-LU
       family(SAFI 4) routes, import policy based on Communities or inter-AS
       source-peer may be used to place the route in the desired Transport
       Class.</t>
 
-      <t>When the ingress route is received via [BGP-SRTE], which encodes the
-      Transport Class as an integer "Color" in the NLRI as "Color:Endpoint",
-      the Color can be mapped to a Transport Class during import processing.
-      The Color could map to a Community, or Route-Target that installs the
-      ingress route for "Endpoint" in the appropriate Transport RIB. The
-      BGP-SRTE route when advertised out to BGP speakers will then be
-      advertised in Transport-VPN family with Transport Class RT and a new
-      label. The MPLS swap route thus installed for the new label will pop the
-      label and deliver decapsulated-traffic into the path determined by SRTE
-      route.</t>
+      <t>When the ingress route is received via <xref
+      target="SRTE">SRTE</xref>, which encodes the Transport Class as an
+      integer "Color" in the NLRI as "Color:Endpoint", the Color can be mapped
+      to a Transport Class during import processing. The Color could map to a
+      Community, or Route-Target that installs the ingress route for
+      "Endpoint" in the appropriate Transport RIB. The SRTE route when
+      advertised out to BGP speakers will then be advertised in Transport-VPN
+      family with Transport Class RT and a new label. The MPLS swap route thus
+      installed for the new label will pop the label and deliver
+      decapsulated-traffic into the path determined by SRTE route.</t>
     </section>
 
     <section title="Transport RIB">
@@ -268,7 +267,9 @@
       <t>Overlay routes that want to use a specific Transport Class confine
       the scope of nexthop resolution to the set of routes contained in the
       corresponding Transport RIB. This Transport RIB is the "Routing Table"
-      referred in [Section 9.1.2.1 RFC4271]</t>
+      referred in <eref
+      target="https://www.rfc-editor.org/rfc/rfc4271#section-9.1.2.1">Section
+      9.1.2.1 RFC4271</eref></t>
 
       <t>Routes in a Transport RIB are exported out in 'Transport-VPN' address
       family.</t>
@@ -292,7 +293,7 @@
 
       <t>To accomplish this, the set of service routes may be associated with
       a user-configured "resolution scheme", which consists of the primary
-      Transport Class, and an ordered list of fallback Transport Classes. </t>
+      Transport Class, and an ordered list of fallback Transport Classes.</t>
 
       <t>A community called as "Mapping Community" is configured for a
       "resolution scheme". A Mapping community maps to exactly one resolution
@@ -307,7 +308,7 @@
       Community" on the service route and determines the resolution scheme
       that should be used when resolving the route's PNH. If the route
       contains more than one Mapping Communities, the first one mapping to a
-      resolution scheme is chosen. </t>
+      resolution scheme is chosen.</t>
 
       <t>A transport route received in BGP Transport-VPN family should use a
       resolution scheme that contains only the primary Transport Class without
@@ -318,60 +319,15 @@
 
     <section title="BGP Transport-VPN Family NLRI">
       <t>The Transport-VPN family will use the existing AFI of IPv4 or IPv6,
-      and a new SAFI "Transport-VPN" that will apply to both IPv4 and
-      IPv6.</t>
+      and a new SAFI TBD "Transport-VPN" that will apply to both IPv4 and IPv6
+      AFIs.</t>
 
-      <t>The NLRI encoding is exactly the same as RFC-4364 (AFI/SAFI = 1/128
-      or 2/128) as stated in Fig 1.</t>
+      <t>The "Transport-VPN" SAFI NLRI itself is encoded as specified in <xref
+      target="RFC8277">https://tools.ietf.org/html/rfc8277#section-2</xref>.</t>
 
-      <figure>
-        <artwork> 0                   1                   2                   3
- 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-|    Length     |                 Label                 |Rsrv |S|
-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-|                          RD                                   ~
-~                                                               |
-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-|                          Prefix                               ~
-~                                                               |
-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-
-          Figure 1: Transport-VPN NLRI
-
-- Length:
-
-    The Length field consists of a single octet.  It specifies the
-    length in bits of the remainder of the NLRI field.
-
-    Note that the length will always be the sum of 20 (number of bits
-    in Label field), plus 3 (number of bits in Rsrv field), plus 1
-    (number of bits in S field), plus the length in bits of the
-    prefix.
-
-    In an MP_REACH_NLRI attribute whose SAFI is TBD, the prefix will
-    be 96 bits or less if the AFI is 1 and will be 192 bits or less
-    if the AFI is 2.
-
-    As specified in [RFC4760], the actual length of the NLRI field
-    will be the number of bits specified in the Length field, 
-    rounded up to the nearest integral number of octets.
-
-- Label:
-
-    The Label field is a 20-bit field containing an MPLS label value
-    (see [RFC3032]).
-
-- Rsrv:
-
-    This 3-bit field SHOULD be set to zero on transmission and MUST
-    be ignored on reception.
-
-- S:
-
-    This 1-bit field MUST be set to one on transmission and MUST be
-    ignored on reception.</artwork>
-      </figure>
+      <t>When AFI is IPv4 the "Prefix" portion of Transport-VPN family NLRI
+      consists of an 8-byte RD followed by an IPv4 prefix. When AFI is IPv6
+      the "Prefix" consists of an 8-byte RD followed by an IPv6 prefix.</t>
 
       <t>Attributes on a Transport-VPN route include the Route-Target extended
       community, which is used to leak the route into the right Transport RIBs
@@ -379,19 +335,19 @@
     </section>
 
     <section title="Comparison with other families using RFC-8277 encoding">
-      <t>SAFI 128 (InetVpn) is a RFC-8277 encoded family that carries service
+      <t>SAFI 128 (Inet-VPN) is a RF8277 encoded family that carries service
       prefixes in the NLRI, where the prefixes come from the customer
       namespaces, and are contexualized into separate user virtual service
-      RIBs called VRFs, using RFC-4364 procedures.</t>
+      RIBs called VRFs, using RFC4364 procedures.</t>
 
-      <t>SAFI 4 (BGP-LU) is a RFC-8277 encoded family that carries transport
+      <t>SAFI 4 (BGP-LU) is a RFC8277 encoded family that carries transport
       prefixes in the NLRI, where the prefixes come from the provider
       namespace.</t>
 
-      <t>SAFI 75 (Transport-VPN) is a RFC-8277 encoded family that carries
+      <t>SAFI TBD (Transport-VPN) is a RFC8277 encoded family that carries
       transport prefixes in the NLRI, where the prefixes come from the
       provider namespace, but are contexualized into separate Transport RIBs,
-      using RFC-4364 procedures.</t>
+      using RFC4364 procedures.</t>
 
       <t>It is worth noting that SAFI 128 has been used to carry transport
       prefixes in "L3VPN Inter-AS Carrier's carrier" scenario, where
@@ -455,6 +411,10 @@
           RD:TunnelEndpoint and PNH TunnelEndpoint, which will resolve over
           the tunnel route at the ingress node. When the tunnel is up, the
           Transport-VPN route will become usable and get re-advertised.</t>
+
+          <t>Unique RD is used by the originator of a Transport-VPN route to
+          disambiguate the multiple BGP advertisements for a transport end
+          point.</t>
         </list></t>
 
       <t>Ingress node receiving Transport-VPN route<list>
@@ -492,10 +452,11 @@
 
       <t>Avoiding path-hiding through Route Reflectors<list>
           <t>When multiple BNs exist that advertise a RDn:PEn prefix to RRs,
-          the RRs may hide all but one of the BNs, unless [ADDPATH] is used
-          for the Transport-VPN family. This is similar to L3VPN option-B
-          scenarios. Hence [ADDPATH] should be used for Transport-VPN family,
-          to avoid path-hiding through RRs.</t>
+          the RRs may hide all but one of the BNs, unless <xref
+          target="RFC7911">ADDPATH</xref> is used for the Transport-VPN
+          family. This is similar to L3VPN option-B scenarios. Hence ADDPATH
+          should be used for Transport-VPN family, to avoid path-hiding
+          through RRs.</t>
         </list></t>
 
       <t>Ingress node receiving service route with mapping community<list>
@@ -519,6 +480,11 @@
           unique RDs is strongly recommended, because it helps in trouble
           shooting by uniquely identifying originator of a route, and avoids
           path-hiding.</t>
+
+          <t>Future versions of this document may define a new format of
+          Route-Target extended-community to carry Transport Class, to avoid
+          collision with regular Route Target namespace used by service
+          routes.</t>
         </list></t>
     </section>
 
@@ -529,16 +495,16 @@
     <section anchor="IANA" title="IANA Considerations">
       <t>This document makes following requests of IANA.</t>
 
-      <t>New BGP SAFI code for "Transport-VPN". Value 75.</t>
+      <t>New BGP SAFI code for "Transport-VPN". Value TBD.</t>
 
       <t>This will be used to create new AFI,SAFI pairs for IPv4, IPv6
-      Transport-Vpn families. viz:</t>
+      Transport-VPN families. viz:</t>
 
       <t><list style="symbols">
-          <t>"Inet, Transport-Vpn". AFI/SAFI = "1/75" for carrying IPv4
+          <t>"Inet, Transport-VPN". AFI/SAFI = "1/TBD" for carrying IPv4
           Transport-VPN prefixes.</t>
 
-          <t>"Inet6, Transport-Vpn". AFI/SAFI = "2/75" for carrying IPv6
+          <t>"Inet6, Transport-VPN". AFI/SAFI = "2/TBD" for carrying IPv6
           Transport-VPN prefixes.</t>
         </list></t>
 
@@ -547,8 +513,15 @@
     </section>
 
     <section anchor="Security" title="Security Considerations">
-      <t>Mechanisms described in this document dont have any adverse impact on
-      security of a network.</t>
+      <t>Mechanisms described in this document carry Transport routes in a new
+      BGP address family. That minimizes possibility of these routes leaking
+      outside the expected domain or mixing with service routes.</t>
+
+      <t>When redistributing between SAFI 4 and SAFI TBD Transport-VPN routes,
+      there is a possibility of SAFI 4 routes mixing with SAFI 1 service
+      routes. To avoid such scenarios, it is recommended that implementations
+      support keeping SAFI 4 routes in a separate transport RIB, distinct from
+      service RIB that contain SAFI 1 service routes.</t>
     </section>
 
     <section anchor="Acknowledgements" title="Acknowledgements">
@@ -561,26 +534,31 @@
       carry these transport-routes was based on suggestion made by Richard
       Roberts and Krzysztof Szarkowicz.</t>
     </section>
-
-    <section anchor="References" title="References">
-      <t>[Section 9.1.2.1 RFC4271]
-      https://tools.ietf.org/html/rfc4271#section-9.1.2.1, A Border Gateway
-      Protocol 4 (BGP-4)</t>
-
-      <t>[RFC-4364] BGP/MPLS IP Virtual Private Networks (VPNs)</t>
-
-      <t>[RFC-8277] Using BGP to Bind MPLS Labels to Address Prefixes</t>
-
-      <t>[ADDPATH] RFC-7911 - Advertisement of Multiple Paths in BGP</t>
-
-      <t>[BGP-SRTE] Advertising Segment Routing Policies in BGP,
-      draft-ietf-idr-segment-routing-te-policy-08</t>
-    </section>
   </middle>
 
   <back>
     <references title="Normative References">
       <?rfc include="reference.RFC.2119"?>
+
+      <?rfc include="reference.RFC.8277"?>
+
+      <?rfc include="reference.RFC.4271"?>
+
+      <?rfc include="reference.RFC.4364"?>
+
+      <?rfc include="reference.RFC.7911"?>
+
+      <reference anchor="SRTE"
+                 target="https://tools.ietf.org/html/draft-ietf-idr-segment-routing-te-policy-08">
+        <front>
+          <title>Advertising Segment Routing Policies in BGP</title>
+
+          <author fullname="Previdi" initials="S" role="editor"
+                  surname="Previdi"/>
+
+          <date day="18" month="11" year="2019"/>
+        </front>
+      </reference>
     </references>
   </back>
 </rfc>
