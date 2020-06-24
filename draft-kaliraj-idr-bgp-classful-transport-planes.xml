@@ -10,10 +10,12 @@
 <?rfc inline="yes"?>
 <?rfc compact="yes"?>
 <?rfc subcompact="no"?>
-<rfc category="std" docName="draft-kaliraj-idr-bgp-classful-transports-00"
+<rfc category="std"
+     docName="draft-kaliraj-idr-bgp-classful-transport-planes-00"
      ipr="trust200902">
   <front>
-    <title abbrev="BGP Classful Transports">BGP Classful Transports</title>
+    <title abbrev="BGP Classful Transport Planes">BGP Classful Transport
+    Planes</title>
 
     <author fullname="Kaliraj Vairavakkalai" initials="K."
             surname="Vairavakkalai">
@@ -78,21 +80,21 @@
       </address>
     </author>
 
-    <date day="03" month="April" year="2020"/>
+    <date day="07" month="May" year="2020"/>
 
     <abstract>
       <t>This document specifies a mechanism, referred to as "service
       mapping", to express association of overlay routes with underlay routes
-      using BGP. The document describes a framework for service mapping, and
-      specifies BGP protocol procedures that enable dissimination of the
-      service mapping information that may span across administrative domains.
-      It makes it possible to advertise multiple tunnels to the same
-      destination.</t>
+      using BGP. The document describes a framework for classifying underlay
+      routes into transport planes, and mapping service routes to specific
+      transport plane. It specifies BGP protocol procedures that enable
+      dissimination of such service mapping information that may span across
+      administrative domains. It makes it possible to advertise multiple
+      tunnels to the same destination.</t>
 
       <t>A new BGP transport address family is defined for this purpose that
-      uses <xref target="RFC4364">BGP-VPN</xref> technology and follows <xref
-      target="RFC8277">MPLS-BGP</xref> NLRI encoding. This new address family
-      is called "Classful Transport".</t>
+      uses RFC-4364 technology and follows RFC-8277 NLRI encoding. This new
+      address family is called "Classful Transport". </t>
     </abstract>
 
     <note title="Requirements Language">
@@ -134,15 +136,16 @@
       and uses the native intra-AS tunnel of the desired transport class when
       traversing within a domain.</t>
 
-      <t>Overlay routes carry sufficient indication of the Transport Class
-      they should be encapsulated over. A "route resolution" procedure on the
-      ingress node selects from the Transport Class an appropriate tunnel
-      whose destination matches (LPM) the nexthop of the overlay route. If the
-      overlay route is carried in BGP, the protocol nexthop (or, PNH) is
-      generally carried as an attribute of the route. The PNH of the overlay
-      route is also referred to as "service endpoint". The service endpoint
-      may exist in the same domain as the service ingress node or lie in a
-      different domain, adjacent or non-adjacent.</t>
+      <t>Overlay routes carry sufficient indication, in form of mapping
+      community, of the Transport Classes they should be encapsulated over. A
+      "route resolution" procedure on the ingress node selects from the
+      Transport Class an appropriate tunnel whose destination matches (LPM)
+      the nexthop of the overlay route. If the overlay route is carried in
+      BGP, the protocol nexthop (or, PNH) is generally carried as an attribute
+      of the route. The PNH of the overlay route is also referred to as
+      "service endpoint". The service endpoint may exist in the same domain as
+      the service ingress node or lie in a different domain, adjacent or
+      non-adjacent.</t>
 
       <t>This document describes mechanisms to: <list>
           <t>Model a "Transport Class" as "Transport RIB" on a router,
@@ -212,13 +215,11 @@
       <t>Transport RIB : At the SN and BN, a Transport Class has an associted
       Transport RIB that holds its tunnel routes.</t>
 
-      <t>Transport RTI : A Routing Instance; container of Transport RIB, and
-      associated Transport Class RT and RD.</t>
-
-      <t>Transport-VPN : Set of Transport RTIs importing same Transport Class
-      RT. These are inturn stitched together to span across tunnel domain
-      boundaries using a mechanism similar to Inter-AS option-b to swap labels
-      at BN (nexthop-self).</t>
+      <t>Transport Plane : An end to end plane comprising of transport tunnels
+      belonging to same transport class. Tunnels of same transport class are
+      stitched together by BGP route readvertisements with nexthop-self, to
+      span across domain boundaries using Label-Swap forwarding mechanism
+      similar to Inter-AS option-b.</t>
 
       <t>Mapping Community : Community on a service route, that maps it to
       resolve over a Transport Class</t>
@@ -243,9 +244,9 @@
 
       <t>Alternatively, a router receiving the transport routes in BGP with
       appropriate signaling information can associate those ingress routes to
-      the appropriate Transport Class. E.g. for Classful Transport family(SAFI
-      TBD) routes, the Transport Class RT indicates the Transport Class. For
-      BGP-LU family(SAFI 4) routes, import policy based on Communities or
+      the appropriate Transport Class. E.g. for Classful Transport family
+      (SAFI TBD) routes, the Transport Class RT indicates the Transport Class.
+      For BGP-LU family(SAFI 4) routes, import policy based on Communities or
       inter-AS source-peer may be used to place the route in the desired
       Transport Class.</t>
 
@@ -261,104 +262,52 @@
       decapsulated-traffic into the path determined by SRTE route.</t>
     </section>
 
-    <section title="Transport Class Route Target">
-      <t>This document defines a new type of Route Target, called "Network
-      attributes" route target extended community, which has a typed value
-      field.</t>
+    <section title="&quot;Transport Class&quot; Route Target Extended Community">
+      <t>This document defines a new type of Route Target, called "Transport
+      Class" Route Target Extended Community.</t>
 
-      <t>One type of "Network attributes" is defined viz. "Transport Class"
-      Route Target Extended Community.</t>
+      <t>"Transport Class" Route Target extended community is a transitive
+      extended community <xref target="RFC4360">EXT-COMM</xref> of
+      extended-type, with a new Format (Type high = TBD) and SubType as 0x2
+      (Route Target).</t>
 
-      <t>The Transport class Route Target is carried on Classful Transport
-      routes, and allows leaking them to appropriate Transport RIBs using
-      <xref target="RFC4364">BGP-VPN</xref> machinery.</t>
+      <t>This new Route Target Format has the following encoding:</t>
 
-      <section title="&quot;Network attributes&quot; Route Target Extended Community">
-        <t>"Network attributes" route target extended community is a
-        transitive extended community <xref target="RFC4360">EXT-COMM</xref>
-        of extended-type, with a new Format (Type high = TBD) and a subtype
-        0x2 (route target). This new Route Target Format has a typed value
-        field.</t>
-
-        <t>It has the following encoding:</t>
-
-        <figure>
-          <artwork> 0                   1                   2                   3
+      <figure>
+        <artwork> 0                   1                   2                   3
  0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-|     TBD       |     0x02      |    NA-Type    |    Value      |
-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-|                     Value (contd..)                           |
-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-
-   This is a Transitive extended-community of extended-type. 
-   It has a two octets Type field. The 'Transitive bit' in 
-   Type-high is set to 0. 
-
-   The value of the high-order octet of the extended type field 
-   is TBD(IANA). This value indicates a "Network attributes 
-   route target". 
-
-   The value of the sub-type (low-order octet of the extended type
-   field) for this community is set to 0x02. This indicates it is 
-   a Route-Target.
-
-   It has a typed value portion. The first octet of value field 
-   is a type field called NA-Type.
-
-   Layout of the remaining 5 octets of the 6 octet value field 
-   is determined by value of NA-type.
-
- Following types are currently defined:
-
-     NA-Type  |   Description
-   -----------+------------------------------------------------
-       1      | "Transport Class" Route Target Extended Community
-
-
- Network attributes route-target extended community with
- Unknown types are propagated as received</artwork>
-        </figure>
-
-        <t>The "Network attributes" Route Target Extended community follows
-        the mechanisms for VPN leaking and RTC specified in <xref
-        target="RFC4364">BGP-VPN</xref> and <xref
-        target="RFC4684">VPN-RTC</xref></t>
-
-        <section title="&quot;Transport Class&quot; Route Target Extended Community">
-          <t>Transport Class Route Target extended community is a Network
-          attributes route target extended community with NA-Type = 1.</t>
-
-          <t>It has the following encoding:</t>
-
-          <figure>
-            <artwork> 0                   1                   2                   3
- 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-|      TBD      |     0x02      |  NA-Type=1    |   Reserved    |
+|   Type= TBD   | SubType= 0x02 |            Reserved           |
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 |                     Transport Class                           |
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 
- NA-Type = 1:  "Transport Class" Route Target Extended Community
+         "Transport Class" Route Target Extended Community
 
- When NA-Type is 1, the least-significant 32-bits of the value field
- contain the "Transport Class" value. 
+ Type: Type field contains value TBD.
 
- The remaining 1 octet after Type field is Reserved, It must be 
- ignored on reception, must set to zero on transmission.
+ SubType: Subtype field contain 0x2. This indicates 'Route Target'.
+
+ Transport Class: The least significant 32-bits of the value field
+ contain the "Transport Class" value, which is a 32-bit integer. 
+
+ The remaining 2 octets after SubType field are Reserved, they must 
+ be ignored on reception, and set to zero on transmission.
 </artwork>
-          </figure>
+      </figure>
 
-          <t>The Transport class Route Target Extended community is carried on
-          Classful Transport routes, and allows leaking them to appropriate
-          Transport RIBs.</t>
+      <t>The "Transport class" Route Target Extended community follows the
+      mechanisms for VPN route leaking and RTC as sspecified in <xref
+      target="RFC4364">BGP-VPN</xref> and <xref
+      target="RFC4684">VPN-RTC</xref></t>
 
-          <t>Use of Transport class Route Target Extended community avoids
-          conflicts with any existing VPN Route Target assignments used for
-          service VPN families.</t>
-        </section>
-      </section>
+      <t>The Transport Class Route Target Extended community is carried on
+      Classful Transport family routes, and allows associating them with
+      appropriate Transport RIBs at receiving BGP speakers.</t>
+
+      <t>Use of the Transport Class Route Target Extended community with a new
+      Type code avoids conflicts with any VPN Route Target assignments already
+      in use for service families.</t>
     </section>
 
     <section title="Transport RIB">
@@ -400,24 +349,28 @@
 
       <t>A community called as "Mapping Community" is configured for a
       "resolution scheme". A Mapping community maps to exactly one resolution
-      scheme.</t>
+      scheme. A resolution scheme comprises of one primary transport class and
+      optionally one or more fallback transport classes.</t>
 
       <t>When a resolution scheme comprises of a primary Transport Class
       without any fallback, the Transport Class RT associated with the primary
       Transport Class is used as the Mapping Community.</t>
 
-      <t>A BGP service route is associated with a resolution scheme during
-      import processing. The import processing matches against "Mapping
-      Community" on the service route and determines the resolution scheme
-      that should be used when resolving the route's PNH. If the route
-      contains more than one Mapping Communities, the first one mapping to a
-      resolution scheme is chosen.</t>
+      <t>A BGP route is associated with a resolution scheme during import
+      processing. The first community on the route that matches a mapping
+      communiity of a locally configured resolution scheme is considered the
+      effective mapping community for the route. The resolution scheme thus
+      found is used when resolving the route's PNH. If a route contains more
+      than one mapping community, it indicates that the route considers these
+      multiple mapping communities as equivalent. So the first community that
+      maps to a resolution scheme is chosen.</t>
 
       <t>A transport route received in BGP Classful Transport family should
-      use a resolution scheme that contains only the primary Transport Class
-      without any fallbacks. The primary Transport Class is identified by the
-      Transport Class RT carried on the route. Thus Transport Class RT serves
-      as the Mapping Community for Classful Transport routes.</t>
+      use a resolution scheme that contains the primary Transport Class
+      without any fallback to best effort tunnels. The primary Transport Class
+      is identified by the Transport Class RT carried on the route. Thus
+      Transport Class RT serves as the Mapping Community for Classful
+      Transport routes.</t>
     </section>
 
     <section title="BGP Classful Transport Family NLRI">
@@ -485,7 +438,7 @@
       <t>This section summarizes the procedures followed by various nodes
       speaking Classful Transport family</t>
 
-      <t>Preparing the network for deploying Classful Transports</t>
+      <t>Preparing the network for deploying Classful Transport planes</t>
 
       <t><list>
           <t>Operator decides on the Transport Classes that exist in the
@@ -506,7 +459,7 @@
       <t>Origination of Classful Transport route:</t>
 
       <t><list>
-          <t>At the ingress node of the tunnel's egress domain, the tunneling
+          <t>At the ingress node of the tunnel's home domain, the tunneling
           protocols install routes in the Transport RIB associated with the
           Transport Class the tunnel belongs to. The ingress node then
           advertises this tunnel route into BGP as a Classful Transport route
@@ -517,7 +470,7 @@
           endpoint can originate the BGP Classful Transport route, with NLRI
           RD:TunnelEndpoint and PNH TunnelEndpoint, which will resolve over
           the tunnel route at the ingress node. When the tunnel is up, the
-          Classful Transport route will become usable and get
+          Classful Transport BGP route will become usable and get
           re-advertised.</t>
 
           <t>Unique RD is used by the originator of a Classful Transport route
@@ -527,12 +480,12 @@
 
       <t>Ingress node receiving Classful Transport route<list>
           <t>On receiving a BGP Classful Transport route with a PNH that is
-          not directly connected, e.g. an IBGP-route, the Route-Target on the
-          route indicates which Transport Class this route belongs to. The
-          routes in the associated Transport RIB are used to resolve the
-          received PNH. If there does not exist a route in the Transport RIB
-          for the PNH, the Classful Transport route is considered unusable,
-          and MUST not be re-advertised further.</t>
+          not directly connected, e.g. an IBGP-route, a mapping community on
+          the route (the Transport Class RT) indicates which Transport Class
+          this route maps to. The routes in the associated Transport RIB are
+          used to resolve the received PNH. If there does not exist a route in
+          the Transport RIB matching the PNH, the Classful Transport route is
+          considered unusable, and MUST NOT be re-advertised further.</t>
         </list></t>
 
       <t>Border node readvertising Classful Transport route with nexthop
@@ -585,6 +538,10 @@
           than any other BGP VPN family. Mechanisms employed in inter-AS VPN
           deployments may be used with the Classful Transport family also.</t>
 
+          <t>The resolution schemes should allow association with multiple
+          mapping communities. This also helps with renumbering, network
+          mergers, or transitions.</t>
+
           <t>Though RD can also be rewritten on domain boundaries, deploying
           unique RDs is strongly recommended, because it helps in trouble
           shooting by uniquely identifying originator of a route, and avoids
@@ -620,28 +577,13 @@
 
       <section title="New Format for BGP Extended Community">
         <t>Please assign a new Format (Type high = TBD) of extended community
-        <xref target="RFC4360">EXT-COMM</xref> called "Network
-        attributes".</t>
+        <xref target="RFC4360">EXT-COMM</xref> called "Transport Class".</t>
 
-        <t>This document uses this new extended community Format in subtype
-        0x2 (route target) extended community.</t>
+        <t>It is a transitive extended community. This document uses this new
+        Format with subtype 0x2 (route target) extended community.</t>
 
-        <t>The Route Target thus formed is called "Network attributes" route
+        <t>The Route Target thus formed is called "Transport Class" route
         target extended community.</t>
-      </section>
-
-      <section title="New registry for Type of &quot;Network attributes&quot; route target.">
-        <t>Please create a new registry to record different types of "Network
-        attributes" route target extended community.</t>
-
-        <t>The following Types are defined by this document:</t>
-
-        <figure>
-          <artwork>     Type     |   Description
-   -----------+---------------------------------------------------
-       1      |  "Transport Class" Route Target Extended Community
-</artwork>
-        </figure>
       </section>
     </section>
 
