@@ -5,12 +5,12 @@
 Network Working Group                                   K. Vairavakkalai
 Internet-Draft                                           N. Venkataraman
 Intended status: Standards Track                          B. Rajagopalan
-Expires: November 8, 2020                         Juniper Networks, Inc.
-                                                            May 07, 2020
+Expires: January 14, 2021                         Juniper Networks, Inc.
+                                                           July 13, 2020
 
 
                      BGP Classful Transport Planes
-           draft-kaliraj-idr-bgp-classful-transport-planes-00
+           draft-kaliraj-idr-bgp-classful-transport-planes-01
 
 Abstract
 
@@ -48,14 +48,14 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on November 8, 2020.
+   This Internet-Draft will expire on January 14, 2021.
 
 
 
 
-Vairavakkalai, et al.   Expires November 8, 2020                [Page 1]
+Vairavakkalai, et al.   Expires January 14, 2021                [Page 1]
 
-Internet-Draft        BGP Classful Transport Planes             May 2020
+Internet-Draft        BGP Classful Transport Planes            July 2020
 
 
 Copyright Notice
@@ -79,7 +79,7 @@ Table of Contents
    2.  Terminology . . . . . . . . . . . . . . . . . . . . . . . . .   4
    3.  Transport Class . . . . . . . . . . . . . . . . . . . . . . .   5
    4.  "Transport Class" Route Target Extended Community . . . . . .   6
-   5.  Transport RIB . . . . . . . . . . . . . . . . . . . . . . . .   7
+   5.  Transport RIB . . . . . . . . . . . . . . . . . . . . . . . .   6
    6.  Transport Routing Instance  . . . . . . . . . . . . . . . . .   7
    7.  Nexthop Resolution Scheme . . . . . . . . . . . . . . . . . .   7
    8.  BGP Classful Transport Family NLRI  . . . . . . . . . . . . .   8
@@ -90,7 +90,7 @@ Table of Contents
      12.1.  New BGP SAFI . . . . . . . . . . . . . . . . . . . . . .  12
      12.2.  New Format for BGP Extended Community  . . . . . . . . .  12
    13. Security Considerations . . . . . . . . . . . . . . . . . . .  12
-   14. Acknowledgements  . . . . . . . . . . . . . . . . . . . . . .  12
+   14. Acknowledgements  . . . . . . . . . . . . . . . . . . . . . .  13
    15. Normative References  . . . . . . . . . . . . . . . . . . . .  13
    Authors' Addresses  . . . . . . . . . . . . . . . . . . . . . . .  14
 
@@ -100,25 +100,25 @@ Table of Contents
    grouped by the purpose they serve into a "Transport Class".  The
    tunnels could be created using any signaling protocol, such as LDP,
    RSVP, BGP-LU or SPRING.  The tunnels could also use native IP or
-   IPv6, as long as the tunnels can carry MPLS payload.  Tunnels may
-   exist between different pair of end points.  Multiple tunnels may
-   exist between the same pair of end points.
+   IPv6, as long as they can carry MPLS payload.  Tunnels may exist
+   between different pair of end points.  Multiple tunnels may exist
+   between the same pair of end points.
 
-   Thus, a Transport Class consists of tunnels created by many protocols
-   terminating in various nodes, each satisfying the properties of the
+   Thus, a Transport Class consists of tunnels created by various
+   protocols, and satisfy the properties of the class.  For example, a
 
 
 
-Vairavakkalai, et al.   Expires November 8, 2020                [Page 2]
+Vairavakkalai, et al.   Expires January 14, 2021                [Page 2]
 
-Internet-Draft        BGP Classful Transport Planes             May 2020
+Internet-Draft        BGP Classful Transport Planes            July 2020
 
 
-   class.  For example, a "Gold" transport class may consist of tunnels
-   that traverse the shortest path with fast re-route protection, a
-   "Silver" transport class may hold tunnels that traverse shortest
-   paths without protection, a "To NbrAS Foo" transport class may hold
-   tunnels that exit to neighboring AS Foo, and so on.
+   "Gold" transport class may consist of tunnels that traverse the
+   shortest path with fast re-route protection, a "Silver" transport
+   class may hold tunnels that traverse shortest paths without
+   protection, a "To NbrAS Foo" transport class may hold tunnels that
+   exit to neighboring AS Foo, and so on.
 
    The extensions specified in this document can be used to create a BGP
    transport tunnel that potentially spans domains, while preserving its
@@ -134,16 +134,17 @@ Internet-Draft        BGP Classful Transport Planes             May 2020
    tunnel of the desired transport class when traversing within a
    domain.
 
-   Overlay routes carry sufficient indication, in form of mapping
-   community, of the Transport Classes they should be encapsulated over.
-   A "route resolution" procedure on the ingress node selects from the
-   Transport Class an appropriate tunnel whose destination matches (LPM)
-   the nexthop of the overlay route.  If the overlay route is carried in
-   BGP, the protocol nexthop (or, PNH) is generally carried as an
-   attribute of the route.  The PNH of the overlay route is also
-   referred to as "service endpoint".  The service endpoint may exist in
-   the same domain as the service ingress node or lie in a different
-   domain, adjacent or non-adjacent.
+   Overlay routes carry sufficient indication of the Transport Classes
+   they should be encapsulated over, in form of BGP community called the
+   "mapping community".  Based on the mapping community, "route
+   resolution" procedure on the ingress node selects from the
+   corresponding Transport Class an appropriate tunnel whose destination
+   matches (LPM) the nexthop of the overlay route.  If the overlay route
+   is carried in BGP, the protocol nexthop (or, PNH) is generally
+   carried as an attribute of the route.  The PNH of the overlay route
+   is also referred to as "service endpoint".  The service endpoint may
+   exist in the same domain as the service ingress node or lie in a
+   different domain, adjacent or non-adjacent.
 
    This document describes mechanisms to:
 
@@ -151,8 +152,9 @@ Internet-Draft        BGP Classful Transport Planes             May 2020
       consisting of tunnel ingress routes of a certain class.
 
       Enable service routes to resolve over an intended Transport Class
-      by using the corresponding Transport RIB for finding nexthop
-      reachability.
+      by virtue of carrying the appropriate "Mapping community".  Which
+      results in using the corresponding Transport RIB for finding
+      nexthop reachability.
 
       Advertise tunnel ingress routes in a Transport RIB via BGP without
       any path hiding, using BGP VPN technology and Add-path.  Such that
@@ -163,11 +165,9 @@ Internet-Draft        BGP Classful Transport Planes             May 2020
 
 
 
-
-
-Vairavakkalai, et al.   Expires November 8, 2020                [Page 3]
+Vairavakkalai, et al.   Expires January 14, 2021                [Page 3]
 
-Internet-Draft        BGP Classful Transport Planes             May 2020
+Internet-Draft        BGP Classful Transport Planes            July 2020
 
 
       Provide a way for co-operating domains to reconcile between
@@ -197,7 +197,7 @@ Internet-Draft        BGP Classful Transport Planes             May 2020
 
    RD : Route-Distinguisher
 
-   PNH : Protocol-Nexthop
+   PNH : Protocol-Nexthop address carried in a BGP Update message
 
    LPM : Longest Prefix Match
 
@@ -221,9 +221,9 @@ Internet-Draft        BGP Classful Transport Planes             May 2020
 
 
 
-Vairavakkalai, et al.   Expires November 8, 2020                [Page 4]
+Vairavakkalai, et al.   Expires January 14, 2021                [Page 4]
 
-Internet-Draft        BGP Classful Transport Planes             May 2020
+Internet-Draft        BGP Classful Transport Planes            July 2020
 
 
    Transport Class RT : A Route-Target extended community used to
@@ -238,8 +238,8 @@ Internet-Draft        BGP Classful Transport Planes             May 2020
    self, to span across domain boundaries using Label-Swap forwarding
    mechanism similar to Inter-AS option-b.
 
-   Mapping Community : Community on a service route, that maps it to
-   resolve over a Transport Class
+   Mapping Community : BGP Community/Extended-community on a service
+   route, that maps it to resolve over a Transport Class
 
 3.  Transport Class
 
@@ -254,35 +254,34 @@ Internet-Draft        BGP Classful Transport Planes             May 2020
    the associated Transport RIB and a Transport routing instance to
    contain them all.
 
-   The operator may configure a BN to classify a tunnel into an
+   The operator may configure a SN/BN to classify a tunnel into an
    appropriate Transport Class, which causes the tunnel's ingress routes
-   to be installed in the corresponding Transport RIB.  These tunnel
-   routes may then be advertised into BGP.
+   to be installed in the corresponding Transport RIB.  At a BN, these
+   tunnel routes may then be advertised into BGP.
 
    Alternatively, a router receiving the transport routes in BGP with
    appropriate signaling information can associate those ingress routes
    to the appropriate Transport Class.  E.g. for Classful Transport
-   family (SAFI TBD) routes, the Transport Class RT indicates the
-   Transport Class.  For BGP-LU family(SAFI 4) routes, import policy
+   family (SAFI 76) routes, the Transport Class RT indicates the
+   Transport Class.  For BGP-LU family(SAFI 4) routes, import processing
    based on Communities or inter-AS source-peer may be used to place the
    route in the desired Transport Class.
 
    When the ingress route is received via SRTE [SRTE], which encodes the
-   Transport Class as an integer "Color" in the NLRI as
-   "Color:Endpoint", the Color can be mapped to a Transport Class during
-   import processing.  The Color could map to a Transport Class Route-
-   Target that installs the ingress route for "Endpoint" in the
-   appropriate Transport RIB.  The SRTE route when advertised out to BGP
+   Transport Class as an integer 'Color' in the NLRI as
+   "Color:Endpoint", the 'Color' is mapped to a Transport Class during
+   import processing.  SRTE ingress route for 'Endpoint' is installed in
+   that transport-class.  The SRTE route when advertised out to BGP
    speakers will then be advertised in Classful Transport family with
-
-
-
-Vairavakkalai, et al.   Expires November 8, 2020                [Page 5]
-
-Internet-Draft        BGP Classful Transport Planes             May 2020
-
-
    Transport Class RT and a new label.  The MPLS swap route thus
+
+
+
+Vairavakkalai, et al.   Expires January 14, 2021                [Page 5]
+
+Internet-Draft        BGP Classful Transport Planes            July 2020
+
+
    installed for the new label will pop the label and deliver
    decapsulated-traffic into the path determined by SRTE route.
 
@@ -293,28 +292,28 @@ Internet-Draft        BGP Classful Transport Planes             May 2020
 
    "Transport Class" Route Target extended community is a transitive
    extended community EXT-COMM [RFC4360] of extended-type, with a new
-   Format (Type high = TBD) and SubType as 0x2 (Route Target).
+   Format (Type high = 0xa) and SubType as 0x2 (Route Target).
 
    This new Route Target Format has the following encoding:
 
     0                   1                   2                   3
     0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-   |   Type= TBD   | SubType= 0x02 |            Reserved           |
+   |   Type= 0xa   | SubType= 0x02 |            Reserved           |
    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
    |                     Transport Class                           |
    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 
             "Transport Class" Route Target Extended Community
 
-    Type: Type field contains value TBD.
+    Type: Type field contains value 0xa.
 
     SubType: Subtype field contain 0x2. This indicates 'Route Target'.
 
     Transport Class: The least significant 32-bits of the value field
     contain the "Transport Class" value, which is a 32-bit integer.
 
-    The remaining 2 octets after SubType field are Reserved, they must
+    The remaining 2 octets after SubType field are Reserved, they MUST
     be ignored on reception, and set to zero on transmission.
 
    The "Transport class" Route Target Extended community follows the
@@ -329,16 +328,15 @@ Internet-Draft        BGP Classful Transport Planes             May 2020
    Type code avoids conflicts with any VPN Route Target assignments
    already in use for service families.
 
-
-
-
-
-Vairavakkalai, et al.   Expires November 8, 2020                [Page 6]
-
-Internet-Draft        BGP Classful Transport Planes             May 2020
-
-
 5.  Transport RIB
+
+
+
+
+Vairavakkalai, et al.   Expires January 14, 2021                [Page 6]
+
+Internet-Draft        BGP Classful Transport Planes            July 2020
+
 
    A Transport RIB is a routing-only RIB that is not installed in
    forwarding path.  However, the routes in this RIB are used to resolve
@@ -355,11 +353,11 @@ Internet-Draft        BGP Classful Transport Planes             May 2020
 
 6.  Transport Routing Instance
 
-   A BGP VPN routing instance that is a container for the Transport
-   RIBs.  It imports, and exports routes in this RIB with Transport
-   Class RT.  Tunnel destination addresses in this routing instance's
-   context come from the "provider namespace".  This is different from
-   user VRFs for e.g., which contain prefixes in "customer namespace"
+   A BGP VPN routing instance that is a container for the Transport RIB.
+   It imports, and exports routes in this RIB with Transport Class RT.
+   Tunnel destination addresses in this routing instance's context come
+   from the "provider namespace".  This is different from user VRFs for
+   e.g., which contain prefixes in "customer namespace"
 
    The Transport Routing instance uses the RD and RT configured for the
    Transport Class.
@@ -372,7 +370,8 @@ Internet-Draft        BGP Classful Transport Planes             May 2020
 
    To accomplish this, the set of service routes may be associated with
    a user-configured "resolution scheme", which consists of the primary
-   Transport Class, and an ordered list of fallback Transport Classes.
+   Transport Class, and optionally, an ordered list of fallback
+   Transport Classes.
 
    A community called as "Mapping Community" is configured for a
    "resolution scheme".  A Mapping community maps to exactly one
@@ -386,32 +385,42 @@ Internet-Draft        BGP Classful Transport Planes             May 2020
 
    A BGP route is associated with a resolution scheme during import
    processing.  The first community on the route that matches a mapping
+   community of a locally configured resolution scheme is considered the
 
 
 
-Vairavakkalai, et al.   Expires November 8, 2020                [Page 7]
+Vairavakkalai, et al.   Expires January 14, 2021                [Page 7]
 
-Internet-Draft        BGP Classful Transport Planes             May 2020
+Internet-Draft        BGP Classful Transport Planes            July 2020
 
 
-   communiity of a locally configured resolution scheme is considered
-   the effective mapping community for the route.  The resolution scheme
+   effective mapping community for the route.  The resolution scheme
    thus found is used when resolving the route's PNH.  If a route
    contains more than one mapping community, it indicates that the route
    considers these multiple mapping communities as equivalent.  So the
    first community that maps to a resolution scheme is chosen.
 
-   A transport route received in BGP Classful Transport family should
+   A transport route received in BGP Classful Transport family SHOULD
    use a resolution scheme that contains the primary Transport Class
    without any fallback to best effort tunnels.  The primary Transport
    Class is identified by the Transport Class RT carried on the route.
    Thus Transport Class RT serves as the Mapping Community for Classful
    Transport routes.
 
+   A service route received in a BGP service family MAY map to a
+   resolution scheme that contains the primary Transport Class
+   identified by the mapping community on the route, and a fallback to
+   best effort tunnels transport class.  The primary Transport Class is
+   identified by the Mapping community carried on the route.  For e.g.
+   the Extended Color community may serve as the Mapping Community for
+   service routes.  Color:0:<n> MAY map to a resolution scheme that has
+   primary transport class <n>, and a fallback to best-effort transport
+   class.
+
 8.  BGP Classful Transport Family NLRI
 
    The Classful Transport family will use the existing AFI of IPv4 or
-   IPv6, and a new SAFI TBD "Classful Transport" that will apply to both
+   IPv6, and a new SAFI 76 "Classful Transport" that will apply to both
    IPv4 and IPv6 AFIs.
 
    The "Classful Transport" SAFI NLRI itself is encoded as specified in
@@ -433,22 +442,22 @@ Internet-Draft        BGP Classful Transport Planes             May 2020
    namespaces, and are contexualized into separate user virtual service
    RIBs called VRFs, using RFC4364 procedures.
 
+
+
+
+Vairavakkalai, et al.   Expires January 14, 2021                [Page 8]
+
+Internet-Draft        BGP Classful Transport Planes            July 2020
+
+
    SAFI 4 (BGP-LU) is a RFC8277 encoded family that carries transport
    prefixes in the NLRI, where the prefixes come from the provider
    namespace.
 
-   SAFI TBD (Classful Transport) is a RFC8277 encoded family that
-   carries transport prefixes in the NLRI, where the prefixes come from
-   the provider namespace, but are contexualized into separate Transport
+   SAFI 76 (Classful Transport) is a RFC8277 encoded family that carries
+   transport prefixes in the NLRI, where the prefixes come from the
+   provider namespace, but are contexualized into separate Transport
    RIBs, using RFC4364 procedures.
-
-
-
-
-Vairavakkalai, et al.   Expires November 8, 2020                [Page 8]
-
-Internet-Draft        BGP Classful Transport Planes             May 2020
-
 
    It is worth noting that SAFI 128 has been used to carry transport
    prefixes in "L3VPN Inter-AS Carrier's carrier" scenario, where BGP-LU
@@ -490,21 +499,21 @@ Internet-Draft        BGP Classful Transport Planes             May 2020
       Operator configures Transport Classes on the SNs and BNs in the
       network with unique Route-Distinguishers and Route-Targets.
 
+
+
+Vairavakkalai, et al.   Expires January 14, 2021                [Page 9]
+
+Internet-Draft        BGP Classful Transport Planes            July 2020
+
+
       Implementations may provide automatic generation and assignment of
-      RD, RT values for a transport routing instance; they should also
+      RD, RT values for a transport routing instance; they MAY also
       provide a way to manually override the automatic mechanism, in
       order to deal with any conflicts that may arise with existing RD,
       RT values in the different network domains participating in a
       deployment.
 
    Origination of Classful Transport route:
-
-
-
-Vairavakkalai, et al.   Expires November 8, 2020                [Page 9]
-
-Internet-Draft        BGP Classful Transport Planes             May 2020
-
 
       At the ingress node of the tunnel's home domain, the tunneling
       protocols install routes in the Transport RIB associated with the
@@ -546,6 +555,13 @@ Internet-Draft        BGP Classful Transport Planes             May 2020
 
    Border node receiving Classful Transport route on EBGP :
 
+
+
+Vairavakkalai, et al.   Expires January 14, 2021               [Page 10]
+
+Internet-Draft        BGP Classful Transport Planes            July 2020
+
+
       If the route is received with PNH that is known to be directly
       connected, e.g. EBGP single-hop peering address, the directly
       connected interface is checked for MPLS forwarding capability.  No
@@ -553,16 +569,8 @@ Internet-Draft        BGP Classful Transport Planes             May 2020
       link can be used for any Transport Class.
 
       If the inter-AS links should honor Transport Class, then the BN
-      should follow procedures of an Ingress node described above, and
-
-
-
-Vairavakkalai, et al.   Expires November 8, 2020               [Page 10]
-
-Internet-Draft        BGP Classful Transport Planes             May 2020
-
-
-      perform nexthop resolution process.  The interface routes should
+      SHOULD follow procedures of an Ingress node described above, and
+      perform nexthop resolution process.  The interface routes SHOULD
       be installed in the Transport RIB belonging to the associated
       Transport Class.
 
@@ -571,7 +579,7 @@ Internet-Draft        BGP Classful Transport Planes             May 2020
       When multiple BNs exist that advertise a RDn:PEn prefix to RRs,
       the RRs may hide all but one of the BNs, unless ADDPATH [RFC7911]
       is used for the Classful Transport family.  This is similar to
-      L3VPN option-B scenarios.  Hence ADDPATH should be used for
+      L3VPN option-B scenarios.  Hence ADDPATH SHOULD be used for
       Classful Transport family, to avoid path-hiding through RRs.
 
    Ingress node receiving service route with mapping community
@@ -592,35 +600,33 @@ Internet-Draft        BGP Classful Transport Planes             May 2020
       VPN deployments may be used with the Classful Transport family
       also.
 
-      The resolution schemes should allow association with multiple
-      mapping communities.  This also helps with renumbering, network
+      The resolution schemes SHOULD allow association with multiple
+      mapping communities.  This helps with renumbering, network
       mergers, or transitions.
 
       Though RD can also be rewritten on domain boundaries, deploying
-      unique RDs is strongly recommended, because it helps in trouble
+      unique RDs is strongly RECOMMENDED, because it helps in trouble
       shooting by uniquely identifying originator of a route, and avoids
       path-hiding.
+
+
+
+
+
+Vairavakkalai, et al.   Expires January 14, 2021               [Page 11]
+
+Internet-Draft        BGP Classful Transport Planes            July 2020
+
 
       This document defines a new format of Route-Target extended-
       community to carry Transport Class, this avoids collision with
       regular Route Target namespace used by service routes.
 
-
-
-
-
-
-
-
-
-Vairavakkalai, et al.   Expires November 8, 2020               [Page 11]
-
-Internet-Draft        BGP Classful Transport Planes             May 2020
-
-
 11.  OAM considerations
 
-   TBD
+   <TBD> BGP Clasful Transport will use a new [RFC 8029] OAM Target FEC
+   Stack Subtype TBD.  The FEC format will be similar to a VPN IPv4
+   prefix or VPN IPv6 prefix.
 
 12.  IANA Considerations
 
@@ -628,20 +634,20 @@ Internet-Draft        BGP Classful Transport Planes             May 2020
 
 12.1.  New BGP SAFI
 
-   New BGP SAFI code for "Classful Transport".  Value TBD.
+   New BGP SAFI code for "Classful Transport".  Value 76.
 
    This will be used to create new AFI,SAFI pairs for IPv4, IPv6
    Classful Transport families. viz:
 
-   o  "Inet, Classful Transport".  AFI/SAFI = "1/TBD" for carrying IPv4
+   o  "Inet, Classful Transport".  AFI/SAFI = "1/76" for carrying IPv4
       Classful Transport prefixes.
 
-   o  "Inet6, Classful Transport".  AFI/SAFI = "2/TBD" for carrying IPv6
+   o  "Inet6, Classful Transport".  AFI/SAFI = "2/76" for carrying IPv6
       Classful Transport prefixes.
 
 12.2.  New Format for BGP Extended Community
 
-   Please assign a new Format (Type high = TBD) of extended community
+   Please assign a new Format (Type high = 0xa) of extended community
    EXT-COMM [RFC4360] called "Transport Class".
 
    It is a transitive extended community.  This document uses this new
@@ -656,9 +662,21 @@ Internet-Draft        BGP Classful Transport Planes             May 2020
    BGP address family.  That minimizes possibility of these routes
    leaking outside the expected domain or mixing with service routes.
 
-   When redistributing between SAFI 4 and SAFI TBD Classful Transport
+
+
+
+
+
+
+
+Vairavakkalai, et al.   Expires January 14, 2021               [Page 12]
+
+Internet-Draft        BGP Classful Transport Planes            July 2020
+
+
+   When redistributing between SAFI 4 and SAFI 76 Classful Transport
    routes, there is a possibility of SAFI 4 routes mixing with SAFI 1
-   service routes.  To avoid such scenarios, it is recommended that
+   service routes.  To avoid such scenarios, it is RECOMMENDED that
    implementations support keeping SAFI 4 routes in a separate transport
    RIB, distinct from service RIB that contain SAFI 1 service routes.
 
@@ -666,14 +684,6 @@ Internet-Draft        BGP Classful Transport Planes             May 2020
 
    The authors thank Jeff Haas, John Scudder, Navaneetha Krishnan, Ravi
    M R, Chandrasekar Ramachandran, Shradha Hegde, Richard Roberts,
-
-
-
-Vairavakkalai, et al.   Expires November 8, 2020               [Page 12]
-
-Internet-Draft        BGP Classful Transport Planes             May 2020
-
-
    Krzysztof Szarkowicz, John E Drake, Srihari Sangli, Vijay Kestur,
    Santosh Kolenchery for the valuable discussions.
 
@@ -713,6 +723,13 @@ Internet-Draft        BGP Classful Transport Planes             May 2020
               10.17487/RFC7911, July 2016, <https://www.rfc-editor.org/
               info/rfc7911>.
 
+
+
+Vairavakkalai, et al.   Expires January 14, 2021               [Page 13]
+
+Internet-Draft        BGP Classful Transport Planes            July 2020
+
+
    [RFC8277]  Rosen, E., "Using BGP to Bind MPLS Labels to Address
               Prefixes", RFC 8277, DOI 10.17487/RFC8277, October 2017,
               <https://www.rfc-editor.org/info/rfc8277>.
@@ -720,15 +737,6 @@ Internet-Draft        BGP Classful Transport Planes             May 2020
    [SRTE]     Previdi, S., Ed., "Advertising Segment Routing Policies in
               BGP", 11 2019, <https://tools.ietf.org/html/draft-ietf-
               idr-segment-routing-te-policy-08>.
-
-
-
-
-
-Vairavakkalai, et al.   Expires November 8, 2020               [Page 13]
-
-Internet-Draft        BGP Classful Transport Planes             May 2020
-
 
 Authors' Addresses
 
@@ -741,7 +749,7 @@ Authors' Addresses
    Email: kaliraj@juniper.net
 
 
-   Natarajan Venkataraman
+   Natrajan Venkataraman
    Juniper Networks, Inc.
    1133 Innovation Way,
    Sunnyvale, CA  94089
@@ -773,12 +781,4 @@ Authors' Addresses
 
 
 
-
-
-
-
-
-
-
-
-Vairavakkalai, et al.   Expires November 8, 2020               [Page 14]
+Vairavakkalai, et al.   Expires January 14, 2021               [Page 14]

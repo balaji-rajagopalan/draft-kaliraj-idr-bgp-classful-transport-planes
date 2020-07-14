@@ -11,7 +11,7 @@
 <?rfc compact="yes"?>
 <?rfc subcompact="no"?>
 <rfc category="std"
-     docName="draft-kaliraj-idr-bgp-classful-transport-planes-00"
+     docName="draft-kaliraj-idr-bgp-classful-transport-planes-01"
      ipr="trust200902">
   <front>
     <title abbrev="BGP Classful Transport Planes">BGP Classful Transport
@@ -38,7 +38,7 @@
       </address>
     </author>
 
-    <author fullname="Natarajan Venkataraman" initials="N."
+    <author fullname="Natrajan Venkataraman" initials="N."
             surname="Venkataraman">
       <organization>Juniper Networks, Inc.</organization>
 
@@ -80,7 +80,7 @@
       </address>
     </author>
 
-    <date day="07" month="May" year="2020"/>
+    <date day="13" month="July" year="2020"/>
 
     <abstract>
       <t>This document specifies a mechanism, referred to as "service
@@ -94,7 +94,7 @@
 
       <t>A new BGP transport address family is defined for this purpose that
       uses RFC-4364 technology and follows RFC-8277 NLRI encoding. This new
-      address family is called "Classful Transport". </t>
+      address family is called "Classful Transport".</t>
     </abstract>
 
     <note title="Requirements Language">
@@ -110,18 +110,18 @@
       <t>To facilitate service mapping, the tunnels in a network can be
       grouped by the purpose they serve into a "Transport Class". The tunnels
       could be created using any signaling protocol, such as LDP, RSVP, BGP-LU
-      or SPRING. The tunnels could also use native IP or IPv6, as long as the
-      tunnels can carry MPLS payload. Tunnels may exist between different pair
-      of end points. Multiple tunnels may exist between the same pair of end
+      or SPRING. The tunnels could also use native IP or IPv6, as long as they
+      can carry MPLS payload. Tunnels may exist between different pair of end
+      points. Multiple tunnels may exist between the same pair of end
       points.</t>
 
-      <t>Thus, a Transport Class consists of tunnels created by many protocols
-      terminating in various nodes, each satisfying the properties of the
-      class. For example, a "Gold" transport class may consist of tunnels that
-      traverse the shortest path with fast re-route protection, a "Silver"
-      transport class may hold tunnels that traverse shortest paths without
-      protection, a "To NbrAS Foo" transport class may hold tunnels that exit
-      to neighboring AS Foo, and so on.</t>
+      <t>Thus, a Transport Class consists of tunnels created by various
+      protocols, and satisfy the properties of the class. For example, a
+      "Gold" transport class may consist of tunnels that traverse the shortest
+      path with fast re-route protection, a "Silver" transport class may hold
+      tunnels that traverse shortest paths without protection, a "To NbrAS
+      Foo" transport class may hold tunnels that exit to neighboring AS Foo,
+      and so on.</t>
 
       <t>The extensions specified in this document can be used to create a BGP
       transport tunnel that potentially spans domains, while preserving its
@@ -136,15 +136,16 @@
       and uses the native intra-AS tunnel of the desired transport class when
       traversing within a domain.</t>
 
-      <t>Overlay routes carry sufficient indication, in form of mapping
-      community, of the Transport Classes they should be encapsulated over. A
-      "route resolution" procedure on the ingress node selects from the
-      Transport Class an appropriate tunnel whose destination matches (LPM)
-      the nexthop of the overlay route. If the overlay route is carried in
-      BGP, the protocol nexthop (or, PNH) is generally carried as an attribute
-      of the route. The PNH of the overlay route is also referred to as
-      "service endpoint". The service endpoint may exist in the same domain as
-      the service ingress node or lie in a different domain, adjacent or
+      <t>Overlay routes carry sufficient indication of the Transport Classes
+      they should be encapsulated over, in form of BGP community called the
+      "mapping community". Based on the mapping community, "route resolution"
+      procedure on the ingress node selects from the corresponding Transport
+      Class an appropriate tunnel whose destination matches (LPM) the nexthop
+      of the overlay route. If the overlay route is carried in BGP, the
+      protocol nexthop (or, PNH) is generally carried as an attribute of the
+      route. The PNH of the overlay route is also referred to as "service
+      endpoint". The service endpoint may exist in the same domain as the
+      service ingress node or lie in a different domain, adjacent or
       non-adjacent.</t>
 
       <t>This document describes mechanisms to: <list>
@@ -152,7 +153,8 @@
           consisting of tunnel ingress routes of a certain class.</t>
 
           <t>Enable service routes to resolve over an intended Transport Class
-          by using the corresponding Transport RIB for finding nexthop
+          by virtue of carrying the appropriate "Mapping community". Which
+          results in using the corresponding Transport RIB for finding nexthop
           reachability.</t>
 
           <t>Advertise tunnel ingress routes in a Transport RIB via BGP
@@ -188,7 +190,7 @@
 
       <t>RD : Route-Distinguisher</t>
 
-      <t>PNH : Protocol-Nexthop</t>
+      <t>PNH : Protocol-Nexthop address carried in a BGP Update message</t>
 
       <t>LPM : Longest Prefix Match</t>
 
@@ -221,8 +223,8 @@
       span across domain boundaries using Label-Swap forwarding mechanism
       similar to Inter-AS option-b.</t>
 
-      <t>Mapping Community : Community on a service route, that maps it to
-      resolve over a Transport Class</t>
+      <t>Mapping Community : BGP Community/Extended-community on a service
+      route, that maps it to resolve over a Transport Class</t>
     </section>
 
     <section title="Transport Class">
@@ -237,25 +239,24 @@
       associated Transport RIB and a Transport routing instance to contain
       them all.</t>
 
-      <t>The operator may configure a BN to classify a tunnel into an
+      <t>The operator may configure a SN/BN to classify a tunnel into an
       appropriate Transport Class, which causes the tunnel's ingress routes to
-      be installed in the corresponding Transport RIB. These tunnel routes may
-      then be advertised into BGP.</t>
+      be installed in the corresponding Transport RIB. At a BN, these tunnel
+      routes may then be advertised into BGP.</t>
 
       <t>Alternatively, a router receiving the transport routes in BGP with
       appropriate signaling information can associate those ingress routes to
       the appropriate Transport Class. E.g. for Classful Transport family
-      (SAFI TBD) routes, the Transport Class RT indicates the Transport Class.
-      For BGP-LU family(SAFI 4) routes, import policy based on Communities or
-      inter-AS source-peer may be used to place the route in the desired
+      (SAFI 76) routes, the Transport Class RT indicates the Transport Class.
+      For BGP-LU family(SAFI 4) routes, import processing based on Communities
+      or inter-AS source-peer may be used to place the route in the desired
       Transport Class.</t>
 
       <t>When the ingress route is received via <xref
       target="SRTE">SRTE</xref>, which encodes the Transport Class as an
-      integer "Color" in the NLRI as "Color:Endpoint", the Color can be mapped
-      to a Transport Class during import processing. The Color could map to a
-      Transport Class Route-Target that installs the ingress route for
-      "Endpoint" in the appropriate Transport RIB. The SRTE route when
+      integer 'Color' in the NLRI as "Color:Endpoint", the 'Color' is mapped
+      to a Transport Class during import processing. SRTE ingress route for
+      'Endpoint' is installed in that transport-class. The SRTE route when
       advertised out to BGP speakers will then be advertised in Classful
       Transport family with Transport Class RT and a new label. The MPLS swap
       route thus installed for the new label will pop the label and deliver
@@ -268,7 +269,7 @@
 
       <t>"Transport Class" Route Target extended community is a transitive
       extended community <xref target="RFC4360">EXT-COMM</xref> of
-      extended-type, with a new Format (Type high = TBD) and SubType as 0x2
+      extended-type, with a new Format (Type high = 0xa) and SubType as 0x2
       (Route Target).</t>
 
       <t>This new Route Target Format has the following encoding:</t>
@@ -277,21 +278,21 @@
         <artwork> 0                   1                   2                   3
  0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-|   Type= TBD   | SubType= 0x02 |            Reserved           |
+|   Type= 0xa   | SubType= 0x02 |            Reserved           |
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 |                     Transport Class                           |
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 
          "Transport Class" Route Target Extended Community
 
- Type: Type field contains value TBD.
+ Type: Type field contains value 0xa.
 
  SubType: Subtype field contain 0x2. This indicates 'Route Target'.
 
  Transport Class: The least significant 32-bits of the value field
  contain the "Transport Class" value, which is a 32-bit integer. 
 
- The remaining 2 octets after SubType field are Reserved, they must 
+ The remaining 2 octets after SubType field are Reserved, they MUST 
  be ignored on reception, and set to zero on transmission.
 </artwork>
       </figure>
@@ -328,9 +329,9 @@
     </section>
 
     <section title="Transport Routing Instance">
-      <t>A BGP VPN routing instance that is a container for the Transport
-      RIBs. It imports, and exports routes in this RIB with Transport Class
-      RT. Tunnel destination addresses in this routing instance's context come
+      <t>A BGP VPN routing instance that is a container for the Transport RIB.
+      It imports, and exports routes in this RIB with Transport Class RT.
+      Tunnel destination addresses in this routing instance's context come
       from the "provider namespace". This is different from user VRFs for
       e.g., which contain prefixes in "customer namespace"</t>
 
@@ -345,7 +346,8 @@
 
       <t>To accomplish this, the set of service routes may be associated with
       a user-configured "resolution scheme", which consists of the primary
-      Transport Class, and an ordered list of fallback Transport Classes.</t>
+      Transport Class, and optionally, an ordered list of fallback Transport
+      Classes.</t>
 
       <t>A community called as "Mapping Community" is configured for a
       "resolution scheme". A Mapping community maps to exactly one resolution
@@ -358,24 +360,34 @@
 
       <t>A BGP route is associated with a resolution scheme during import
       processing. The first community on the route that matches a mapping
-      communiity of a locally configured resolution scheme is considered the
+      community of a locally configured resolution scheme is considered the
       effective mapping community for the route. The resolution scheme thus
       found is used when resolving the route's PNH. If a route contains more
       than one mapping community, it indicates that the route considers these
       multiple mapping communities as equivalent. So the first community that
       maps to a resolution scheme is chosen.</t>
 
-      <t>A transport route received in BGP Classful Transport family should
+      <t>A transport route received in BGP Classful Transport family SHOULD
       use a resolution scheme that contains the primary Transport Class
       without any fallback to best effort tunnels. The primary Transport Class
       is identified by the Transport Class RT carried on the route. Thus
       Transport Class RT serves as the Mapping Community for Classful
       Transport routes.</t>
+
+      <t>A service route received in a BGP service family MAY map to a
+      resolution scheme that contains the primary Transport Class identified
+      by the mapping community on the route, and a fallback to best effort
+      tunnels transport class. The primary Transport Class is identified by
+      the Mapping community carried on the route. For e.g. the Extended Color
+      community may serve as the Mapping Community for service routes.
+      Color:0:&lt;n&gt; MAY map to a resolution scheme that has primary
+      transport class &lt;n&gt;, and a fallback to best-effort transport
+      class.</t>
     </section>
 
     <section title="BGP Classful Transport Family NLRI">
       <t>The Classful Transport family will use the existing AFI of IPv4 or
-      IPv6, and a new SAFI TBD "Classful Transport" that will apply to both
+      IPv6, and a new SAFI 76 "Classful Transport" that will apply to both
       IPv4 and IPv6 AFIs.</t>
 
       <t>The "Classful Transport" SAFI NLRI itself is encoded as specified in
@@ -402,8 +414,8 @@
       prefixes in the NLRI, where the prefixes come from the provider
       namespace.</t>
 
-      <t>SAFI TBD (Classful Transport) is a RFC8277 encoded family that
-      carries transport prefixes in the NLRI, where the prefixes come from the
+      <t>SAFI 76 (Classful Transport) is a RFC8277 encoded family that carries
+      transport prefixes in the NLRI, where the prefixes come from the
       provider namespace, but are contexualized into separate Transport RIBs,
       using RFC4364 procedures.</t>
 
@@ -449,7 +461,7 @@
           network with unique Route-Distinguishers and Route-Targets.</t>
 
           <t>Implementations may provide automatic generation and assignment
-          of RD, RT values for a transport routing instance; they should also
+          of RD, RT values for a transport routing instance; they MAY also
           provide a way to manually override the automatic mechanism, in order
           to deal with any conflicts that may arise with existing RD, RT
           values in the different network domains participating in a
@@ -506,8 +518,8 @@
           can be used for any Transport Class.</t>
 
           <t>If the inter-AS links should honor Transport Class, then the BN
-          should follow procedures of an Ingress node described above, and
-          perform nexthop resolution process. The interface routes should be
+          SHOULD follow procedures of an Ingress node described above, and
+          perform nexthop resolution process. The interface routes SHOULD be
           installed in the Transport RIB belonging to the associated Transport
           Class.</t>
         </list></t>
@@ -517,7 +529,7 @@
           the RRs may hide all but one of the BNs, unless <xref
           target="RFC7911">ADDPATH</xref> is used for the Classful Transport
           family. This is similar to L3VPN option-B scenarios. Hence ADDPATH
-          should be used for Classful Transport family, to avoid path-hiding
+          SHOULD be used for Classful Transport family, to avoid path-hiding
           through RRs.</t>
         </list></t>
 
@@ -538,12 +550,12 @@
           than any other BGP VPN family. Mechanisms employed in inter-AS VPN
           deployments may be used with the Classful Transport family also.</t>
 
-          <t>The resolution schemes should allow association with multiple
-          mapping communities. This also helps with renumbering, network
-          mergers, or transitions.</t>
+          <t>The resolution schemes SHOULD allow association with multiple
+          mapping communities. This helps with renumbering, network mergers,
+          or transitions.</t>
 
           <t>Though RD can also be rewritten on domain boundaries, deploying
-          unique RDs is strongly recommended, because it helps in trouble
+          unique RDs is strongly RECOMMENDED, because it helps in trouble
           shooting by uniquely identifying originator of a route, and avoids
           path-hiding.</t>
 
@@ -554,29 +566,31 @@
     </section>
 
     <section title="OAM considerations">
-      <t>TBD</t>
+      <t>&lt;TBD&gt; BGP Clasful Transport will use a new [RFC 8029] OAM
+      Target FEC Stack Subtype TBD. The FEC format will be similar to a VPN
+      IPv4 prefix or VPN IPv6 prefix.</t>
     </section>
 
     <section anchor="IANA" title="IANA Considerations">
       <t>This document makes following requests of IANA.</t>
 
       <section title="New BGP SAFI">
-        <t>New BGP SAFI code for "Classful Transport". Value TBD.</t>
+        <t>New BGP SAFI code for "Classful Transport". Value 76.</t>
 
         <t>This will be used to create new AFI,SAFI pairs for IPv4, IPv6
         Classful Transport families. viz:</t>
 
         <t><list style="symbols">
-            <t>"Inet, Classful Transport". AFI/SAFI = "1/TBD" for carrying
-            IPv4 Classful Transport prefixes.</t>
+            <t>"Inet, Classful Transport". AFI/SAFI = "1/76" for carrying IPv4
+            Classful Transport prefixes.</t>
 
-            <t>"Inet6, Classful Transport". AFI/SAFI = "2/TBD" for carrying
+            <t>"Inet6, Classful Transport". AFI/SAFI = "2/76" for carrying
             IPv6 Classful Transport prefixes.</t>
           </list></t>
       </section>
 
       <section title="New Format for BGP Extended Community">
-        <t>Please assign a new Format (Type high = TBD) of extended community
+        <t>Please assign a new Format (Type high = 0xa) of extended community
         <xref target="RFC4360">EXT-COMM</xref> called "Transport Class".</t>
 
         <t>It is a transitive extended community. This document uses this new
@@ -592,9 +606,9 @@
       BGP address family. That minimizes possibility of these routes leaking
       outside the expected domain or mixing with service routes.</t>
 
-      <t>When redistributing between SAFI 4 and SAFI TBD Classful Transport
+      <t>When redistributing between SAFI 4 and SAFI 76 Classful Transport
       routes, there is a possibility of SAFI 4 routes mixing with SAFI 1
-      service routes. To avoid such scenarios, it is recommended that
+      service routes. To avoid such scenarios, it is RECOMMENDED that
       implementations support keeping SAFI 4 routes in a separate transport
       RIB, distinct from service RIB that contain SAFI 1 service routes.</t>
     </section>
