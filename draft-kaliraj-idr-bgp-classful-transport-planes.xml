@@ -566,9 +566,49 @@
     </section>
 
     <section title="OAM considerations">
-      <t>&lt;TBD&gt; BGP Clasful Transport will use a new [RFC 8029] OAM
-      Target FEC Stack Subtype TBD. The FEC format will be similar to a VPN
-      IPv4 prefix or VPN IPv6 prefix.</t>
+      <t>Standard MPLS OAM procedures specified in <xref
+      target='RFC8029'/> also apply to BGP Classful Transport.</t>
+      <t>The 'Target FEC Stack' sub-TLV for IPv4 Classful Transport
+      has a Sub-Type of [TBD], and a length of 13. The Value field
+      consists of the RD advertised with the Classful Transport
+      prefix, the IPv4 prefix (with trailing 0 bits to make 32 bits in
+      all), and a prefix length, encoded as follows:</t>
+      <figure anchor="FECv4" title="Classful Transport IPv4 FEC">
+	<artwork xml:space="preserve" align="left">
+       0                   1                   2                   3
+       0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+      |                      Route Distinguisher                      |
+      |                          (8 octets)                           |
+      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+      |                         IPv4 prefix                           |
+      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+      | Prefix Length |                 Must Be Zero                  |
+      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+	</artwork>
+      </figure>
+      <t>The 'Target FEC Stack' sub-TLV for IPv6 Classful Transport
+      has a Sub-Type of [TBD], and a length of 25. The Value field
+      consists of the RD advertised with the Classful Transport
+      prefix, the IPv6 prefix (with trailing 0 bits to make 128 bits
+      in all), and a prefix length, encoded as follows:</t>
+      <figure anchor="FECv6" title="Classful Transport IPv6 FEC">
+	<artwork xml:space="preserve" align="left">
+       0                   1                   2                   3
+       0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+      |                      Route Distinguisher                      |
+      |                          (8 octets)                           |
+      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+      |                         IPv6 prefix                           |
+      |                                                               |
+      |                                                               |
+      |                                                               |
+      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+      | Prefix Length |                 Must Be Zero                  |
+      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+	</artwork>
+      </figure>
     </section>
 
     <section anchor="IANA" title="IANA Considerations">
@@ -598,6 +638,13 @@
 
         <t>The Route Target thus formed is called "Transport Class" route
         target extended community.</t>
+      </section>
+      <section title="MPLS OAM code points">
+	<t>The following two code points are sought for Target FEC Stack sub-TLVs:</t>
+	<t><list style="symbols">
+	  <t>IPv4 BGP Classful Transport</t>
+	  <t>IPv6 BGP Classful Transport</t>
+	</list></t>
       </section>
     </section>
 
@@ -640,6 +687,8 @@
       <?rfc include="reference.RFC.4684"?>
 
       <?rfc include="reference.RFC.7911"?>
+
+      <?rfc include="reference.RFC.8029"?>
 
       <reference anchor="SRTE"
                  target="https://tools.ietf.org/html/draft-ietf-idr-segment-routing-te-policy-08">
