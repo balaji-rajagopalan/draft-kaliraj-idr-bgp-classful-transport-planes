@@ -366,6 +366,7 @@
 <link href="#rfc.section.12" rel="Chapter" title="12 IANA Considerations"/>
 <link href="#rfc.section.12.1" rel="Chapter" title="12.1 New BGP SAFI"/>
 <link href="#rfc.section.12.2" rel="Chapter" title="12.2 New Format for BGP Extended Community"/>
+<link href="#rfc.section.12.3" rel="Chapter" title="12.3 MPLS OAM code points"/>
 <link href="#rfc.section.13" rel="Chapter" title="13 Security Considerations"/>
 <link href="#rfc.section.14" rel="Chapter" title="14 Acknowledgements"/>
 <link href="#rfc.references" rel="Chapter" title="15 Normative References"/>
@@ -457,6 +458,7 @@
 <li>12.   <a href="#rfc.section.12">IANA Considerations</a></li>
 <li>12.1.   <a href="#rfc.section.12.1">New BGP SAFI</a></li>
 <li>12.2.   <a href="#rfc.section.12.2">New Format for BGP Extended Community</a></li>
+<li>12.3.   <a href="#rfc.section.12.3">MPLS OAM code points</a></li>
 <li>13.   <a href="#rfc.section.13">Security Considerations</a></li>
 <li>14.   <a href="#rfc.section.14">Acknowledgements</a></li>
 <li>15.   <a href="#rfc.references">Normative References</a></li>
@@ -613,7 +615,42 @@
   <li>This document defines a new format of Route-Target extended-community to carry Transport Class, this avoids collision with regular Route Target namespace used by service routes.</li>
 </ul>
 <h1 id="rfc.section.11"><a href="#rfc.section.11">11.</a> OAM considerations</h1>
-<p id="rfc.section.11.p.1">&lt;TBD&gt; BGP Clasful Transport will use a new [RFC 8029] OAM Target FEC Stack Subtype TBD. The FEC format will be similar to a VPN IPv4 prefix or VPN IPv6 prefix.</p>
+<p id="rfc.section.11.p.1">Standard MPLS OAM procedures specified in <a href="#RFC8029">[RFC8029]</a> also apply to BGP Classful Transport.</p>
+<p id="rfc.section.11.p.2">The 'Target FEC Stack' sub-TLV for IPv4 Classful Transport has a Sub-Type of [TBD], and a length of 13. The Value field consists of the RD advertised with the Classful Transport prefix, the IPv4 prefix (with trailing 0 bits to make 32 bits in all), and a prefix length, encoded as follows:</p>
+<div id="rfc.figure.1"/>
+<div id="FECv4"/>
+<pre>
+       0                   1                   2                   3
+       0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+      |                      Route Distinguisher                      |
+      |                          (8 octets)                           |
+      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+      |                         IPv4 prefix                           |
+      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+      | Prefix Length |                 Must Be Zero                  |
+      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+	</pre>
+<p class="figure">Figure 1: Classful Transport IPv4 FEC</p>
+<p id="rfc.section.11.p.3">The 'Target FEC Stack' sub-TLV for IPv6 Classful Transport has a Sub-Type of [TBD], and a length of 25. The Value field consists of the RD advertised with the Classful Transport prefix, the IPv6 prefix (with trailing 0 bits to make 128 bits in all), and a prefix length, encoded as follows:</p>
+<div id="rfc.figure.2"/>
+<div id="FECv6"/>
+<pre>
+       0                   1                   2                   3
+       0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+      |                      Route Distinguisher                      |
+      |                          (8 octets)                           |
+      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+      |                         IPv6 prefix                           |
+      |                                                               |
+      |                                                               |
+      |                                                               |
+      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+      | Prefix Length |                 Must Be Zero                  |
+      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+	</pre>
+<p class="figure">Figure 2: Classful Transport IPv6 FEC</p>
 <h1 id="rfc.section.12"><a href="#rfc.section.12">12.</a> <a href="#IANA" id="IANA">IANA Considerations</a></h1>
 <p id="rfc.section.12.p.1">This document makes following requests of IANA.</p>
 <h1 id="rfc.section.12.1"><a href="#rfc.section.12.1">12.1.</a> New BGP SAFI</h1>
@@ -629,6 +666,14 @@
 <p id="rfc.section.12.2.p.1">Please assign a new Format (Type high = 0xa) of extended community <a href="#RFC4360">EXT-COMM</a> <cite title="NONE">[RFC4360]</cite> called "Transport Class".</p>
 <p id="rfc.section.12.2.p.2">It is a transitive extended community. This document uses this new Format with subtype 0x2 (route target) extended community.</p>
 <p id="rfc.section.12.2.p.3">The Route Target thus formed is called "Transport Class" route target extended community.</p>
+<h1 id="rfc.section.12.3"><a href="#rfc.section.12.3">12.3.</a> MPLS OAM code points</h1>
+<p id="rfc.section.12.3.p.1">The following two code points are sought for Target FEC Stack sub-TLVs:</p>
+<p/>
+
+<ul>
+  <li>IPv4 BGP Classful Transport</li>
+  <li>IPv6 BGP Classful Transport</li>
+</ul>
 <h1 id="rfc.section.13"><a href="#rfc.section.13">13.</a> <a href="#Security" id="Security">Security Considerations</a></h1>
 <p id="rfc.section.13.p.1">Mechanisms described in this document carry Transport routes in a new BGP address family. That minimizes possibility of these routes leaking outside the expected domain or mixing with service routes.</p>
 <p id="rfc.section.13.p.2">When redistributing between SAFI 4 and SAFI 76 Classful Transport routes, there is a possibility of SAFI 4 routes mixing with SAFI 1 service routes. To avoid such scenarios, it is RECOMMENDED that implementations support keeping SAFI 4 routes in a separate transport RIB, distinct from service RIB that contain SAFI 1 service routes.</p>
@@ -673,6 +718,12 @@
         <b id="RFC7911">[RFC7911]</b>
       </td>
       <td class="top"><a>Walton, D.</a>, <a>Retana, A.</a>, <a>Chen, E.</a> and <a>J. Scudder</a>, "<a href="http://tools.ietf.org/html/rfc7911">Advertisement of Multiple Paths in BGP</a>", RFC 7911, DOI 10.17487/RFC7911, July 2016.</td>
+    </tr>
+    <tr>
+      <td class="reference">
+        <b id="RFC8029">[RFC8029]</b>
+      </td>
+      <td class="top"><a>Kompella, K.</a>, <a>Swallow, G.</a>, <a>Pignataro, C.</a>, <a>Kumar, N.</a>, <a>Aldrin, S.</a> and <a>M. Chen</a>, "<a href="http://tools.ietf.org/html/rfc8029">Detecting Multiprotocol Label Switched (MPLS) Data-Plane Failures</a>", RFC 8029, DOI 10.17487/RFC8029, March 2017.</td>
     </tr>
     <tr>
       <td class="reference">

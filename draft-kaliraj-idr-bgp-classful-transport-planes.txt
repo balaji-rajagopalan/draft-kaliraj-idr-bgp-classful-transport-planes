@@ -86,13 +86,14 @@ Table of Contents
    9.  Comparison with other families using RFC-8277 encoding  . . .   8
    10. Protocol Procedures . . . . . . . . . . . . . . . . . . . . .   9
    11. OAM considerations  . . . . . . . . . . . . . . . . . . . . .  12
-   12. IANA Considerations . . . . . . . . . . . . . . . . . . . . .  12
-     12.1.  New BGP SAFI . . . . . . . . . . . . . . . . . . . . . .  12
-     12.2.  New Format for BGP Extended Community  . . . . . . . . .  12
-   13. Security Considerations . . . . . . . . . . . . . . . . . . .  12
-   14. Acknowledgements  . . . . . . . . . . . . . . . . . . . . . .  13
-   15. Normative References  . . . . . . . . . . . . . . . . . . . .  13
-   Authors' Addresses  . . . . . . . . . . . . . . . . . . . . . . .  14
+   12. IANA Considerations . . . . . . . . . . . . . . . . . . . . .  13
+     12.1.  New BGP SAFI . . . . . . . . . . . . . . . . . . . . . .  13
+     12.2.  New Format for BGP Extended Community  . . . . . . . . .  13
+     12.3.  MPLS OAM code points . . . . . . . . . . . . . . . . . .  13
+   13. Security Considerations . . . . . . . . . . . . . . . . . . .  14
+   14. Acknowledgements  . . . . . . . . . . . . . . . . . . . . . .  14
+   15. Normative References  . . . . . . . . . . . . . . . . . . . .  14
+   Authors' Addresses  . . . . . . . . . . . . . . . . . . . . . . .  15
 
 1.  Introduction
 
@@ -104,8 +105,7 @@ Table of Contents
    between different pair of end points.  Multiple tunnels may exist
    between the same pair of end points.
 
-   Thus, a Transport Class consists of tunnels created by various
-   protocols, and satisfy the properties of the class.  For example, a
+
 
 
 
@@ -114,6 +114,8 @@ Vairavakkalai, et al.   Expires January 14, 2021                [Page 2]
 Internet-Draft        BGP Classful Transport Planes            July 2020
 
 
+   Thus, a Transport Class consists of tunnels created by various
+   protocols, and satisfy the properties of the class.  For example, a
    "Gold" transport class may consist of tunnels that traverse the
    shortest path with fast re-route protection, a "Silver" transport
    class may hold tunnels that traverse shortest paths without
@@ -160,8 +162,6 @@ Internet-Draft        BGP Classful Transport Planes            July 2020
       any path hiding, using BGP VPN technology and Add-path.  Such that
       overlay routes in the receiving domains can also resolve over
       tunnels of associated Transport Class.
-
-
 
 
 
@@ -624,9 +624,71 @@ Internet-Draft        BGP Classful Transport Planes            July 2020
 
 11.  OAM considerations
 
-   <TBD> BGP Clasful Transport will use a new [RFC 8029] OAM Target FEC
-   Stack Subtype TBD.  The FEC format will be similar to a VPN IPv4
-   prefix or VPN IPv6 prefix.
+   Standard MPLS OAM procedures specified in [RFC8029] also apply to BGP
+   Classful Transport.
+
+   The 'Target FEC Stack' sub-TLV for IPv4 Classful Transport has a Sub-
+   Type of [TBD], and a length of 13.  The Value field consists of the
+   RD advertised with the Classful Transport prefix, the IPv4 prefix
+   (with trailing 0 bits to make 32 bits in all), and a prefix length,
+   encoded as follows:
+
+       0                   1                   2                   3
+       0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+      |                      Route Distinguisher                      |
+      |                          (8 octets)                           |
+      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+      |                         IPv4 prefix                           |
+      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+      | Prefix Length |                 Must Be Zero                  |
+      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+
+                   Figure 1: Classful Transport IPv4 FEC
+
+   The 'Target FEC Stack' sub-TLV for IPv6 Classful Transport has a Sub-
+   Type of [TBD], and a length of 25.  The Value field consists of the
+   RD advertised with the Classful Transport prefix, the IPv6 prefix
+   (with trailing 0 bits to make 128 bits in all), and a prefix length,
+   encoded as follows:
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Vairavakkalai, et al.   Expires January 14, 2021               [Page 12]
+
+Internet-Draft        BGP Classful Transport Planes            July 2020
+
+
+       0                   1                   2                   3
+       0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+      |                      Route Distinguisher                      |
+      |                          (8 octets)                           |
+      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+      |                         IPv6 prefix                           |
+      |                                                               |
+      |                                                               |
+      |                                                               |
+      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+      | Prefix Length |                 Must Be Zero                  |
+      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+
+                   Figure 2: Classful Transport IPv6 FEC
 
 12.  IANA Considerations
 
@@ -656,23 +718,27 @@ Internet-Draft        BGP Classful Transport Planes            July 2020
    The Route Target thus formed is called "Transport Class" route target
    extended community.
 
+12.3.  MPLS OAM code points
+
+   The following two code points are sought for Target FEC Stack sub-
+   TLVs:
+
+
+
+Vairavakkalai, et al.   Expires January 14, 2021               [Page 13]
+
+Internet-Draft        BGP Classful Transport Planes            July 2020
+
+
+   o  IPv4 BGP Classful Transport
+
+   o  IPv6 BGP Classful Transport
+
 13.  Security Considerations
 
    Mechanisms described in this document carry Transport routes in a new
    BGP address family.  That minimizes possibility of these routes
    leaking outside the expected domain or mixing with service routes.
-
-
-
-
-
-
-
-
-Vairavakkalai, et al.   Expires January 14, 2021               [Page 12]
-
-Internet-Draft        BGP Classful Transport Planes            July 2020
-
 
    When redistributing between SAFI 4 and SAFI 76 Classful Transport
    routes, there is a possibility of SAFI 4 routes mixing with SAFI 1
@@ -711,6 +777,15 @@ Internet-Draft        BGP Classful Transport Planes            July 2020
               Networks (VPNs)", RFC 4364, DOI 10.17487/RFC4364, February
               2006, <https://www.rfc-editor.org/info/rfc4364>.
 
+
+
+
+
+Vairavakkalai, et al.   Expires January 14, 2021               [Page 14]
+
+Internet-Draft        BGP Classful Transport Planes            July 2020
+
+
    [RFC4684]  Marques, P., Bonica, R., Fang, L., Martini, L., Raszuk,
               R., Patel, K., and J. Guichard, "Constrained Route
               Distribution for Border Gateway Protocol/MultiProtocol
@@ -723,12 +798,11 @@ Internet-Draft        BGP Classful Transport Planes            July 2020
               10.17487/RFC7911, July 2016, <https://www.rfc-editor.org/
               info/rfc7911>.
 
-
-
-Vairavakkalai, et al.   Expires January 14, 2021               [Page 13]
-
-Internet-Draft        BGP Classful Transport Planes            July 2020
-
+   [RFC8029]  Kompella, K., Swallow, G., Pignataro, C., Ed., Kumar, N.,
+              Aldrin, S., and M. Chen, "Detecting Multiprotocol Label
+              Switched (MPLS) Data-Plane Failures", RFC 8029, DOI
+              10.17487/RFC8029, March 2017, <https://www.rfc-editor.org/
+              info/rfc8029>.
 
    [RFC8277]  Rosen, E., "Using BGP to Bind MPLS Labels to Address
               Prefixes", RFC 8277, DOI 10.17487/RFC8277, October 2017,
@@ -758,6 +832,16 @@ Authors' Addresses
    Email: natv@juniper.net
 
 
+
+
+
+
+
+Vairavakkalai, et al.   Expires January 14, 2021               [Page 15]
+
+Internet-Draft        BGP Classful Transport Planes            July 2020
+
+
    Balaji Rajagopalan
    Juniper Networks, Inc.
    Electra, Exora Business Park~Marathahalli - Sarjapur Outer Ring Road,
@@ -781,4 +865,32 @@ Authors' Addresses
 
 
 
-Vairavakkalai, et al.   Expires January 14, 2021               [Page 14]
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Vairavakkalai, et al.   Expires January 14, 2021               [Page 16]
